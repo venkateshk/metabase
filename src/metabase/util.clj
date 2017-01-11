@@ -762,3 +762,7 @@
                      :when   (and (.startsWith (name ns-symb) "metabase.")
                                   (not (.contains (name ns-symb) "test")))]
                  ns-symb))))
+
+(def ^:const ^java.util.regex.Pattern uuid-regex
+  "A regular expression for matching canonical string representations of UUIDs."
+  #"[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}")

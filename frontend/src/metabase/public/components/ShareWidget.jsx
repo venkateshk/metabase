@@ -35,9 +35,9 @@ export default class ShareWidget extends Component<*, Props, State> {
         let links;
         if (uuid) {
             links = [
-                { name: type,   link: `${document.location.origin}/s/${type}/${uuid}` },
-                { name: "CSV",  link: `${document.location.origin}/s/${type}/${uuid}.csv` },
-                { name: "JSON", link: `${document.location.origin}/s/${type}/${uuid}.json` },
+                { name: type,   link: `${document.location.origin}/public/${type}/${uuid}` },
+                { name: "CSV",  link: `${document.location.origin}/public/${type}/${uuid}.csv` },
+                { name: "JSON", link: `${document.location.origin}/public/${type}/${uuid}.json` },
             ];
         }
 

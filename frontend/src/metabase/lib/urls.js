@@ -42,7 +42,15 @@ var Urls = {
 
     label(label) {
         return `/questions/search?label=${encodeURIComponent(label.slug)}`;
-    }
+    },
+
+    publicCard(uuid, type = null) {
+        return `/public/question/${uuid}` + (type ? `.${type}` : ``);
+    },
+
+    publicDashboard(uuid) {
+        return `/public/dashboard/${uuid}`;
+    },
 }
 
 export default Urls;

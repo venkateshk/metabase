@@ -2,7 +2,7 @@
 import React, { Component, PropTypes } from "react";
 import { connect } from "react-redux";
 
-import ShareWidget from "metabase/components/ShareWidget";
+import ShareWidget from "metabase/public/components/ShareWidget";
 
 import { createPublicLink, deletePublicLink } from "../actions";
 

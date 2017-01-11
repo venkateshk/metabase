@@ -53,6 +53,12 @@ export const CollectionsApi = {
     updateGraph:                 PUT("/api/collection/graph"),
 };
 
+export const PublicApi = {
+    card:                        GET("/api/public/card/:uuid"),
+    dashboard:                   GET("/api/public/dashboard/:uuid"),
+    dashboardCard:               GET("/api/public/dashboard/:uuid/card/:card-id")
+};
+
 export const EmailApi = {
     updateSettings:              PUT("/api/email"),
     sendTest:                   POST("/api/email/test"),

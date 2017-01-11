@@ -10,7 +10,7 @@ import VisualizationError from "./VisualizationError.jsx";
 import VisualizationResult from "./VisualizationResult.jsx";
 
 import Warnings from "./Warnings.jsx";
-import DownloadWidget from "./DownloadWidget.jsx";
+import QueryDownloadWidget from "./QueryDownloadWidget.jsx";
 import QuestionShareWidget from "../containers/QuestionShareWidget";
 
 import { formatNumber, inflect } from "metabase/lib/formatting";
@@ -105,11 +105,10 @@ export default class QueryVisualization extends Component {
                         <Warnings warnings={this.state.warnings} className="mx2" size={18} />
                     }
                     { !isDirty && result && !result.error ?
-                        <DownloadWidget
+                        <QueryDownloadWidget
                             className="mx1"
                             card={card}
-                            datasetQuery={result.json_query}
-                            isLarge={result.data.rows_truncated != null}
+                            result={result}
                         />
                     : null }
                     { isSaved ?

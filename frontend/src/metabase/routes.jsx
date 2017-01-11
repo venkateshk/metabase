@@ -61,6 +61,9 @@ import PeopleListingApp from "metabase/admin/people/containers/PeopleListingApp.
 import GroupsListingApp from "metabase/admin/people/containers/GroupsListingApp.jsx";
 import GroupDetailApp from "metabase/admin/people/containers/GroupDetailApp.jsx";
 
+import PublicQuestion from "metabase/public/containers/PublicQuestion.jsx";
+import PublicDashboard from "metabase/public/containers/PublicDashboard.jsx";
+
 const MetabaseIsSetup = UserAuthWrapper({
     predicate: authData => !authData.hasSetupToken,
     failureRedirectPath: "/setup",
@@ -107,6 +110,12 @@ export const getRoutes = (store) =>
                 replace("/");
             }
         }} />
+
+        {/* PUBLICLY SHARED LINKS */}
+        <Route path="public">
+            <Route path="question/:uuid" component={PublicQuestion} />
+            <Route path="dashboard/:uuid" component={PublicDashboard} />
+        </Route>
 
         {/* APP */}
         <Route onEnter={async (nextState, replace, done) => {

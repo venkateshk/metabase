@@ -28,17 +28,23 @@ export default class ShareWidget extends Component<*, Props, State> {
         }
     }
 
+    static defaultProps = {
+        extensions: []
+    }
+
     render() {
-        const { uuid, type, onCreate, onDisable } = this.props;
+        const { uuid, type, extensions, onCreate, onDisable } = this.props;
         const { confirmDisable } = this.state;
 
         let links;
         if (uuid) {
-            links = [
-                { name: type,   link: `${document.location.origin}/public/${type}/${uuid}` },
-                { name: "CSV",  link: `${document.location.origin}/public/${type}/${uuid}.csv` },
-                { name: "JSON", link: `${document.location.origin}/public/${type}/${uuid}.json` },
-            ];
+            links = [{
+                name: type,
+                link: `${document.location.origin}/public/${type}/${uuid}`
+            }].concat(extensions.map(extension => ({
+                name: extension.toUpperCase(),
+                link: `${document.location.origin}/public/${type}/${uuid}.${extension.toLowerCase()}` })
+            ));
         }
 
         return (

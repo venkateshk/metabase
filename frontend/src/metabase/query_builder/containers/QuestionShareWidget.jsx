@@ -20,6 +20,7 @@ export default class QuestionShareWidget extends Component {
                 className={className}
                 type="question"
                 uuid={card.public_uuid}
+                extensions={["csv", "json"]}
                 onCreate={() => createPublicLink(card)}
                 onDisable={() => deletePublicLink(card)}
             />

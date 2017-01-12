@@ -42,6 +42,7 @@ export default class Dashboard extends Component {
     }
 
     static propTypes = {
+        isEditable: PropTypes.bool,
         isEditing: PropTypes.bool.isRequired,
         isEditingParameter: PropTypes.bool.isRequired,
 
@@ -62,6 +63,10 @@ export default class Dashboard extends Component {
         onReplaceAllDashCardVisualizationSettings: PropTypes.func.isRequired,
 
         onChangeLocation: PropTypes.func.isRequired,
+    };
+
+    static defaultProps = {
+        isEditable: true
     };
 
     async componentDidMount() {

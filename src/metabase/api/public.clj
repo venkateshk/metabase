@@ -55,7 +55,7 @@
   "Fetch a publically-accessible Dashboard. Does not require auth credentials. Public sharing must be enabled."
   [uuid]
   (api/check-public-sharing-enabled)
-  (hydrate (api/check-404 (Dashboard :public_uuid uuid)) [:ordered_cards [:card :creator] :series]))
+  (hydrate (api/check-404 (Dashboard :public_uuid uuid)) [:ordered_cards :card :series]))
 
 (api/defendpoint GET "/dashboard/:uuid/card/:card-id"
   "Fetch the results for a Card in a publically-accessible Dashboard. Does not require auth credentials. Public sharing must be enabled."

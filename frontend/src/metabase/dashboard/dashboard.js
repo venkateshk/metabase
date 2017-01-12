@@ -17,7 +17,7 @@ import Utils from "metabase/lib/utils";
 import type { Dashboard, DashCard, DashCardId } from "metabase/meta/types/Dashboard";
 import type { Card, CardId } from "metabase/meta/types/Card";
 
-import { DashboardApi, MetabaseApi, CardApi, RevisionApi } from "metabase/services";
+import { DashboardApi, MetabaseApi, CardApi, RevisionApi, PublicApi } from "metabase/services";
 
 const DATASET_SLOW_TIMEOUT   = 15 * 1000;
 const DATASET_USUALLY_FAST_THRESHOLD = 15 * 1000;
@@ -150,6 +150,7 @@ export const fetchCardData = createThunkAction(FETCH_CARD_DATA, function(card, d
             };
         }
 
+        const isPublicLink = Utils.isUUID(dashcard.dashboard_id);
         const { dashboardId, dashboards, parameterValues, dashcardData } = getState().dashboard;
         const dashboard = dashboards[dashboardId];
 
@@ -184,7 +185,15 @@ export const fetchCardData = createThunkAction(FETCH_CARD_DATA, function(card, d
         }, DATASET_SLOW_TIMEOUT);
 
         // make the actual request
-        result = await fetchDataOrError(CardApi.query({cardId: card.id, parameters: datasetQuery.parameters}));
+        if (isPublicLink) {
+            result = await fetchDataOrError(PublicApi.dashboardCardQuery({
+                uuid: dashcard.dashboard_id,
+                cardId: card.id,
+                parameters: datasetQuery.parameters ? JSON.stringify(datasetQuery.parameters) : undefined
+            }));
+        } else {
+            result = await fetchDataOrError(CardApi.query({cardId: card.id, parameters: datasetQuery.parameters}));
+        }
 
         clearTimeout(slowCardTimer);
 
@@ -213,8 +222,22 @@ const SET_DASHBOARD_ID = "metabase/dashboard/SET_DASHBOARD_ID";
 export const setDashboardId = createAction(SET_DASHBOARD_ID);
 
 export const fetchDashboard = createThunkAction(FETCH_DASHBOARD, function(dashId, queryParams, enableDefaultParameters = true) {
+    let result;
     return async function(dispatch, getState) {
-        let result = await DashboardApi.get({ dashId: dashId });
+        const isPublicLink = Utils.isUUID(dashId);
+        if (isPublicLink) {
+            result = await PublicApi.dashboard({ uuid: dashId });
+            result = {
+                ...result,
+                id: dashId,
+                ordered_cards: result.ordered_cards.map(dc => ({
+                    ...dc,
+                    dashboard_id: dashId
+                }))
+            };
+        } else {
+            result = await DashboardApi.get({ dashId: dashId });
+        }
 
         dispatch(setDashboardId(dashId));
 
@@ -228,14 +251,16 @@ export const fetchDashboard = createThunkAction(FETCH_DASHBOARD, function(dashId
             }
         }
 
-        // fetch database metadata for every card
-        _.chain(result.ordered_cards)
-            .map((dc) => [dc.card].concat(dc.series))
-            .flatten()
-            .filter(card => card && card.dataset_query && card.dataset_query.database)
-            .map(card => card.dataset_query.database)
-            .uniq()
-            .each((dbId) => dispatch(fetchDatabaseMetadata(dbId)));
+        if (!isPublicLink) {
+            // fetch database metadata for every card
+            _.chain(result.ordered_cards)
+                .map((dc) => [dc.card].concat(dc.series))
+                .flatten()
+                .filter(card => card && card.dataset_query && card.dataset_query.database)
+                .map(card => card.dataset_query.database)
+                .uniq()
+                .each((dbId) => dispatch(fetchDatabaseMetadata(dbId)));
+        }
 
         return normalize(result, dashboard);
     };

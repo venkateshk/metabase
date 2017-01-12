@@ -9,6 +9,7 @@ import CopyWidget from "metabase/components/CopyWidget";
 type Props = {
     uuid?: string,
     type: string,
+    extensions: string[],
     onCreate: () => void,
     onDisable: () => void,
 }
@@ -68,7 +69,7 @@ export default class ShareWidget extends Component<*, Props, State> {
                 : uuid ?
                     <div>
                         <div className="p2">
-                            { links.map(({ name, link }) =>
+                            { links && links.map(({ name, link }) =>
                                 <div className="pt1 pb2">
                                     <div className="text-bold pb1">Public link to {name}</div>
                                     <CopyWidget value={link} />

@@ -31,6 +31,7 @@ export default class DashboardHeader extends Component {
     static propTypes = {
         dashboard: PropTypes.object.isRequired,
         revisions: PropTypes.object.isRequired,
+        isEditable: PropTypes.bool.isRequired,
         isEditing: PropTypes.bool.isRequired,
         isFullscreen: PropTypes.bool.isRequired,
         isNightMode: PropTypes.bool.isRequired,
@@ -126,9 +127,9 @@ export default class DashboardHeader extends Component {
     }
 
     getHeaderButtons() {
-        const { dashboard, parameters, isEditing, isFullscreen, isNightMode } = this.props;
+        const { dashboard, parameters, isEditing, isFullscreen, isNightMode, isEditable } = this.props;
         const isEmpty = !dashboard || dashboard.ordered_cards.length === 0;
-        const canEdit = !!dashboard;
+        const canEdit = isEditable && !!dashboard;
 
         const buttons = [];
 
@@ -224,7 +225,7 @@ export default class DashboardHeader extends Component {
             );
         }
 
-        if (!isFullscreen) {
+        if (!isFullscreen && canEdit) {
             buttons.push(
                 <DashboardShareWidget dashboard={dashboard} />
             )

@@ -32,7 +32,7 @@
                (re-matches #"^/favicon.ico$" uri)))))
 
 (defn- public?
-  "Is this ring request one that will serve `index.html` or `init.html`?"
+  "Is this ring request one that will serve `public.html`?"
   [{:keys [uri]}]
   (re-matches #"^/public/.*$" uri))
 
@@ -197,12 +197,12 @@
          strict-transport-security-header
          #_(public-key-pins-header)))
 
-(defn- html-page-security-headers [allow-iframe]
+(defn- html-page-security-headers [allow-iframe?]
   (merge (cache-prevention-headers)
          strict-transport-security-header
          content-security-policy-header
          #_(public-key-pins-header)
-         (when-not allow-iframe
+         (when-not allow-iframe?
            {"X-Frame-Options"                   "DENY"})      ; Tell browsers not to render our site as an iframe (prevent clickjacking)
          {"X-XSS-Protection"                  "1; mode=block" ; Tell browser to block suspected XSS attacks
           "X-Permitted-Cross-Domain-Policies" "none"          ; Prevent Flash / PDF files from including content from site.

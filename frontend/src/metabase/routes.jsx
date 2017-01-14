@@ -1,3 +1,5 @@
+/* @flow weak */
+
 import React, { Component, PropTypes } from "react";
 
 import { Route, Redirect, IndexRedirect, IndexRoute } from 'react-router';

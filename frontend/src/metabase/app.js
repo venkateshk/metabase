@@ -1,5 +1,8 @@
 /* @flow weak */
 
+import 'babel-polyfill';
+import 'number-to-locale-string';
+
 import React from 'react'
 import ReactDOM from 'react-dom'
 import { Provider } from 'react-redux'
@@ -10,7 +13,6 @@ import MetabaseSettings from "metabase/lib/settings";
 
 import api from "metabase/lib/api";
 
-import { getRoutes } from "./routes.jsx";
 import { getStore } from './store'
 
 import { refreshSiteSettings } from "metabase/redux/settings";
@@ -18,8 +20,8 @@ import { refreshSiteSettings } from "metabase/redux/settings";
 import { Router, browserHistory } from "react-router";
 import { syncHistoryWithStore } from 'react-router-redux'
 
-function init() {
-    const store = getStore(browserHistory);
+function _init(reducers, getRoutes, callback) {
+    const store = getStore(reducers, browserHistory);
     const routes = getRoutes(store);
     const history = syncHistoryWithStore(browserHistory, store);
 
@@ -66,10 +68,16 @@ function init() {
         }
         store.dispatch(push("/unauthorized"));
     });
+
+    if (callback) {
+        callback(store);
+    }
 }
 
-if (document.readyState != 'loading') {
-    init();
-} else {
-    document.addEventListener('DOMContentLoaded', init);
+export function init(...args) {
+    if (document.readyState != 'loading') {
+        _init(...args);
+    } else {
+        document.addEventListener('DOMContentLoaded', () => _init(...args));
+    }
 }

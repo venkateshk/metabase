@@ -39,12 +39,16 @@ export default class ShareWidget extends Component<*, Props, State> {
 
         let links;
         if (uuid) {
+            const baseLink = `${document.location.origin}/public/${type}/${uuid}`;
             links = [{
                 name: type,
-                link: `${document.location.origin}/public/${type}/${uuid}`
+                link: baseLink
+            },{
+                name: "Embed",
+                link: `<iframe src="${baseLink}" width="600" height="400" frameborder="0" />`
             }].concat(extensions.map(extension => ({
                 name: extension.toUpperCase(),
-                link: `${document.location.origin}/public/${type}/${uuid}.${extension.toLowerCase()}` })
+                link: `${baseLink}.${extension.toLowerCase()}` })
             ));
         }
 

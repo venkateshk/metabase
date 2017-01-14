@@ -215,7 +215,7 @@ export default class QueryBuilder extends Component {
                     </div>
 
                     <div ref="viz" id="react_qb_viz" className="flex z1" style={{ "transition": "opacity 0.25s ease-in-out" }}>
-                        <QueryVisualization {...this.props}/>
+                        <QueryVisualization {...this.props} />
                     </div>
                 </div>
 

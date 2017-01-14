@@ -215,7 +215,7 @@
     (let [response (handler request)]
       (update response :headers merge (cond
                                         (api-call? request) (api-security-headers)
-                                        (public? request)   (html-page-security-headers :allow-iframes? true)
+                                        (public? request)   (html-page-security-headers, :allow-iframes? true)
                                         (index? request)    (html-page-security-headers))))))
 
 

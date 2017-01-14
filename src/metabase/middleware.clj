@@ -197,12 +197,12 @@
          strict-transport-security-header
          #_(public-key-pins-header)))
 
-(defn- html-page-security-headers [allow-iframe?]
+(defn- html-page-security-headers [& {:keys [allow-iframes?] }]
   (merge (cache-prevention-headers)
          strict-transport-security-header
          content-security-policy-header
          #_(public-key-pins-header)
-         (when-not allow-iframe?
+         (when-not allow-iframes?
            {"X-Frame-Options"                   "DENY"})      ; Tell browsers not to render our site as an iframe (prevent clickjacking)
          {"X-XSS-Protection"                  "1; mode=block" ; Tell browser to block suspected XSS attacks
           "X-Permitted-Cross-Domain-Policies" "none"          ; Prevent Flash / PDF files from including content from site.
@@ -215,8 +215,8 @@
     (let [response (handler request)]
       (update response :headers merge (cond
                                         (api-call? request) (api-security-headers)
-                                        (public? request)   (html-page-security-headers true)
-                                        (index? request)    (html-page-security-headers false))))))
+                                        (public? request)   (html-page-security-headers :allow-iframes? true)
+                                        (index? request)    (html-page-security-headers))))))
 
 
 ;;; # ------------------------------------------------------------ JSON SERIALIZATION CONFIG ------------------------------------------------------------

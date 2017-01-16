@@ -10,6 +10,7 @@
             (metabase.models [card :refer [Card]]
                              [dashboard :refer [Dashboard]]
                              [dashboard-card :refer [DashboardCard]]
+                             [dashboard-card-series :refer [DashboardCardSeries]]
                              [hydrate :refer [hydrate]])
             [metabase.public-settings :as public-settings]
             [metabase.query-processor :as qp]
@@ -62,7 +63,14 @@
   [uuid card-id parameters]
   {parameters (s/maybe su/JSONString)}
   (api/check-public-sharing-enabled)
-  (api/check-exists? DashboardCard :dashboard_id (api/check-404 (db/select-one-id Dashboard :public_uuid uuid)), :card_id card-id)
+  (api/check-404 (let [dashboard-id (api/check-404 (db/select-one-id Dashboard :public_uuid uuid))]
+                   (or (db/exists? DashboardCard
+                         :dashboard_id dashboard-id
+                         :card_id      card-id)
+                       (when-let [dashcard-ids (db/select-ids DashboardCard :dashboard_id dashboard-id)]
+                         (db/exists? DashboardCardSeries
+                           :card_id          card-id
+                           :dashboardcard_id [:in dashcard-ids])))))
   (run-query-for-card-with-id card-id parameters))
 
 

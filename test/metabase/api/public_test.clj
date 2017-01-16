@@ -6,7 +6,8 @@
             [metabase.http-client :as http]
             (metabase.models [card :refer [Card]]
                              [dashboard :refer [Dashboard]]
-                             [dashboard-card :refer [DashboardCard]])
+                             [dashboard-card :refer [DashboardCard]]
+                             [dashboard-card-series :refer [DashboardCardSeries]])
             metabase.public-settings ; for `enable-public-sharing
             [metabase.query-processor-test :as qp-test]
             [metabase.test.data :as data]
@@ -191,3 +192,13 @@
     (with-temp-public-dashboard-and-card [dash card]
       (get-in (http/client :get 200 (str "public/dashboard/" (:public_uuid dash) "/card/" (u/get-id card)), :parameters (json/encode [{:type "category", :value 2}]))
               [:json_query :parameters]))))
+
+;; Check that an additional Card series works as well
+(expect
+  [[100]]
+  (tu/with-temporary-setting-values [enable-public-sharing true]
+    (with-temp-public-dashboard-and-card [dash card]
+      (with-temp-public-card [card-2]
+        (tu/with-temp DashboardCardSeries [_ {:dashboardcard_id (db/select-one-id DashboardCard :card_id (u/get-id card), :dashboard_id (u/get-id dash))
+                                              :card_id          (u/get-id card-2)}]
+          (qp-test/rows (http/client :get 200 (str "public/dashboard/" (:public_uuid dash) "/card/" (u/get-id card-2)))))))))

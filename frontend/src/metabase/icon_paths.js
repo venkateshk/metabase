@@ -239,6 +239,7 @@ export var ICON_PATHS = {
 };
 
 ICON_PATHS["illustration-line"] = ICON_PATHS['illustration-area'];
+ICON_PATHS["illustration-scatter"] = ICON_PATHS['illustration-area'];
 
 export function loadIcon(name) {
     var def = ICON_PATHS[name];

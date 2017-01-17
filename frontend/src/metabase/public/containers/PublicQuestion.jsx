@@ -8,6 +8,7 @@ import LoadingAndErrorWrapper from "metabase/components/LoadingAndErrorWrapper";
 import LogoBadge from "../components/LogoBadge";
 
 import { PublicApi } from "metabase/services";
+import { updateIn } from "icepick";
 
 export default class PublicQuestion extends Component {
     constructor(props) {
@@ -44,7 +45,15 @@ export default class PublicQuestion extends Component {
                 </div>
                 <LoadingAndErrorWrapper loading={!result} error={error}>
                 { () =>
-                    <Visualization series={[result]} className="flex-full" />
+                    <Visualization
+                        series={[result]}
+                        className="flex-full mt2"
+                        onUpdateVisualizationSettings={(settings) =>
+                            this.setState({
+                                result: updateIn(result, ["card", "visualization_settings"], (s) => ({ ...s, ...settings }))
+                            })
+                        }
+                    />
                 }
                 </LoadingAndErrorWrapper>
             </div>

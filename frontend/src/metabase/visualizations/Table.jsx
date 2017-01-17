@@ -5,8 +5,9 @@ import TableSimple from "./TableSimple.jsx";
 
 import * as DataGrid from "metabase/lib/data_grid";
 import _ from "underscore";
+import { getIn } from "icepick";
 
-export default class Bar extends Component {
+export default class Table extends Component {
     static uiName = "Table";
     static identifier = "table";
     static iconName = "table";
@@ -74,7 +75,7 @@ export default class Bar extends Component {
     render() {
         const { card, cellClickedFn, cellIsClickableFn, setSortFn, isDashboard, settings } = this.props;
         const { data } = this.state;
-        const sort = card.dataset_query.query && card.dataset_query.query.order_by || null;
+        const sort = getIn(card, ["dataset_query", "query", "order_by"]) || null;
         const isPivoted = settings["table.pivot"];
         const TableComponent = isDashboard ? TableSimple : TableInteractive;
         return (

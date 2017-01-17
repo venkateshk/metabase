@@ -134,11 +134,10 @@ export default class DashboardHeader extends Component {
         const buttons = [];
 
         if (isFullscreen && parameters) {
-            buttons.push(...parameters);
+            buttons.push(parameters);
         }
 
         if (isEditing) {
-
             // Parameters
             buttons.push(
                 <span>
@@ -277,7 +276,7 @@ export default class DashboardHeader extends Component {
                 setItemAttributeFn={this.props.setDashboardAttribute}
                 headerModalMessage={this.props.isEditingParameter ?
                     "Select the field that should be filtered for each card" : null}
-                onHeaderModalDone={() => this.props.setEditingParameterId(null)}
+                onHeaderModalDone={() => this.props.setEditingParameter(null)}
             >
             </Header>
         );

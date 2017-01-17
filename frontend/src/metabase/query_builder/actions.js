@@ -25,6 +25,7 @@ import { isDirty, getParameters, getNativeDatabases } from "./selectors";
 import { MetabaseApi, CardApi, UserApi } from "metabase/services";
 
 import { parse as urlParse } from "url";
+import querystring from "querystring";
 
 export const SET_CURRENT_STATE = "metabase/qb/SET_CURRENT_STATE";
 const setCurrentState = createAction(SET_CURRENT_STATE);
@@ -49,7 +50,7 @@ export const DELETE_PUBLIC_LINK = "metabase/card/DELETE_PUBLIC_LINK";
 export const deletePublicLink = createAction(DELETE_PUBLIC_LINK, ({ id }) => CardApi.deletePublicLink({ id }));
 
 export const UPDATE_URL = "metabase/qb/UPDATE_URL";
-export const updateUrl = createThunkAction(UPDATE_URL, (card, isDirty = false, replaceState = false) =>
+export const updateUrl = createThunkAction(UPDATE_URL, (card, { dirty = false, replaceState = false, preserveParameters = true }) =>
     (dispatch, getState) => {
         if (!card) {
             return;
@@ -67,7 +68,7 @@ export const updateUrl = createThunkAction(UPDATE_URL, (card, isDirty = false, r
             return;
         }
 
-        var url = urlForCardState(newState, isDirty);
+        var url = urlForCardState(newState, dirty);
 
         // if the serialized card is identical replace the previous state instead of adding a new one
         // e.x. when saving a new card we want to replace the state and URL with one with the new card ID
@@ -76,7 +77,7 @@ export const updateUrl = createThunkAction(UPDATE_URL, (card, isDirty = false, r
         const urlParsed = urlParse(url);
         const locationDescriptor = {
             pathname: urlParsed.pathname,
-            search: urlParsed.search,
+            search: preserveParameters ? window.location.search : "",
             hash: urlParsed.hash,
             state: newState
         };
@@ -127,8 +128,20 @@ export const initializeQB = createThunkAction(INITIALIZE_QB, (location, params) 
         }
 
         // load up or initialize the card we'll be working on
-        const serializedCard = location.hash || null;
+        let options = {};
+        let serializedCard;
+        // hash can contain either query params starting with ? or a base64 serialized card
+        if (location.hash) {
+            let hash = location.hash.replace(/^#/, "");
+            if (hash.charAt(0) === "?") {
+                options = querystring.parse(hash.substring(1));
+            } else {
+                serializedCard = hash;
+            }
+        }
         const sampleDataset = _.findWhere(databases, { is_sample: true });
+
+        let preserveParameters = false;
         if (params.cardId || serializedCard) {
             // existing card being loaded
             try {
@@ -148,13 +161,15 @@ export const initializeQB = createThunkAction(INITIALIZE_QB, (location, params) 
                 MetabaseAnalytics.trackEvent("QueryBuilder", "Query Loaded", card.dataset_query.type);
 
                 // if we have deserialized card from the url AND loaded a card by id then the user should be dropped into edit mode
-                uiControls.isEditing = (location.query.edit || (params.cardId && serializedCard)) ? true : false;
+                uiControls.isEditing = (options.edit || (params.cardId && serializedCard)) ? true : false;
 
                 // if this is the users first time loading a saved card on the QB then show them the newb modal
                 if (params.cardId && currentUser.is_qbnewb) {
                     uiControls.isShowingNewbModal = true;
                     MetabaseAnalytics.trackEvent("QueryBuilder", "Show Newb Modal");
                 }
+
+                preserveParameters = true;
             } catch(error) {
                 console.warn(error)
                 card = null;
@@ -166,7 +181,7 @@ export const initializeQB = createThunkAction(INITIALIZE_QB, (location, params) 
                 }
             }
 
-        } else if (location.query.tutorial !== undefined && sampleDataset) {
+        } else if (options.tutorial !== undefined && sampleDataset) {
             // we are launching the QB tutorial
             card = startNewCard("query", sampleDataset.id);
 
@@ -175,36 +190,41 @@ export const initializeQB = createThunkAction(INITIALIZE_QB, (location, params) 
 
         } else {
             // we are starting a new/empty card
-            const databaseId = (location.query.db) ? parseInt(location.query.db) : (databases && databases.length > 0 && databases[0].id);
+            const databaseId = (options.db) ? parseInt(options.db) : (databases && databases.length > 0 && databases[0].id);
 
             card = startNewCard("query", databaseId);
 
             // initialize parts of the query based on optional parameters supplied
-            if (location.query.table != undefined && card.dataset_query.query) {
-                card.dataset_query.query.source_table = parseInt(location.query.table);
+            if (options.table != undefined && card.dataset_query.query) {
+                card.dataset_query.query.source_table = parseInt(options.table);
             }
 
-            if (location.query.segment != undefined && card.dataset_query.query) {
-                card.dataset_query.query.filter = ["AND", ["SEGMENT", parseInt(location.query.segment)]];
+            if (options.segment != undefined && card.dataset_query.query) {
+                card.dataset_query.query.filter = ["AND", ["SEGMENT", parseInt(options.segment)]];
             }
 
-            if (location.query.metric != undefined && card.dataset_query.query) {
-                card.dataset_query.query.aggregation = ["METRIC", parseInt(location.query.metric)];
+            if (options.metric != undefined && card.dataset_query.query) {
+                card.dataset_query.query.aggregation = ["METRIC", parseInt(options.metric)];
             }
 
             MetabaseAnalytics.trackEvent("QueryBuilder", "Query Started", card.dataset_query.type);
         }
 
-
         dispatch(loadMetadataForCard(card));
 
         // if we have loaded up a card that we can run then lets kick that off as well
         if (card && card.dataset_query && (Query.canRun(card.dataset_query.query) || card.dataset_query.type === "native")) {
-            dispatch(runQuery(card, false));
+            // NOTE: timeout to allow Parameters widget to set parameterValues
+            setTimeout(() =>
+                dispatch(runQuery(card, false))
+            , 0);
         }
 
         // clean up the url and make sure it reflects our card state
-        dispatch(updateUrl(card, isCardDirty(card, originalCard)));
+        dispatch(updateUrl(card, {
+            dirty: isCardDirty(card, originalCard),
+            preserveParameters
+        }));
 
         return {
             card,
@@ -259,7 +279,7 @@ export const cancelEditing = createThunkAction(CANCEL_EDITING, () => {
 
         // we do this to force the indication of the fact that the card should not be considered dirty when the url is updated
         dispatch(runQuery(card, false));
-        dispatch(updateUrl(card, false));
+        dispatch(updateUrl(card, { dirty: false }));
 
         MetabaseAnalytics.trackEvent("QueryBuilder", "Edit Cancel");
         return card;
@@ -349,7 +369,7 @@ export const setCardVisualization = createThunkAction(SET_CARD_VISUALIZATION, (d
     return (dispatch, getState) => {
         const { qb: { card, uiControls } } = getState();
         let updatedCard = updateVisualizationSettings(card, uiControls.isEditing, display, card.visualization_settings);
-        dispatch(updateUrl(updatedCard, true));
+        dispatch(updateUrl(updatedCard, { dirty: true }));
         return updatedCard;
     }
 });
@@ -359,7 +379,7 @@ export const updateCardVisualizationSettings = createThunkAction(UPDATE_CARD_VIS
     return (dispatch, getState) => {
         const { qb: { card, uiControls } } = getState();
         let updatedCard = updateVisualizationSettings(card, uiControls.isEditing, card.display, { ...card.visualization_settings, ...settings });
-        dispatch(updateUrl(updatedCard, true));
+        dispatch(updateUrl(updatedCard, { dirty: true }));
         return updatedCard;
     };
 });
@@ -369,7 +389,7 @@ export const replaceAllCardVisualizationSettings = createThunkAction(REPLACE_ALL
     return (dispatch, getState) => {
         const { qb: { card, uiControls } } = getState();
         let updatedCard = updateVisualizationSettings(card, uiControls.isEditing, card.display, settings);
-        dispatch(updateUrl(updatedCard, true));
+        dispatch(updateUrl(updatedCard, { dirty: true }));
         return updatedCard;
     };
 });
@@ -400,7 +420,7 @@ export const setParameterValue = createAction(SET_PARAMETER_VALUE, (parameterId,
 export const NOTIFY_CARD_CREATED = "NOTIFY_CARD_CREATED";
 export const notifyCardCreatedFn = createThunkAction(NOTIFY_CARD_CREATED, (card) => {
     return (dispatch, getState) => {
-        dispatch(updateUrl(card, false));
+        dispatch(updateUrl(card, { dirty: false }));
 
         MetabaseAnalytics.trackEvent("QueryBuilder", "Create Card", card.dataset_query.type);
 
@@ -411,7 +431,7 @@ export const notifyCardCreatedFn = createThunkAction(NOTIFY_CARD_CREATED, (card)
 export const NOTIFY_CARD_UPDATED = "NOTIFY_CARD_UPDATED";
 export const notifyCardUpdatedFn = createThunkAction("NOTIFY_CARD_UPDATED", (card) => {
     return (dispatch, getState) => {
-        dispatch(updateUrl(card, false));
+        dispatch(updateUrl(card, { dirty: false }));
 
         MetabaseAnalytics.trackEvent("QueryBuilder", "Update Card", card.dataset_query.type);
 
@@ -432,7 +452,7 @@ export const reloadCard = createThunkAction(RELOAD_CARD, () => {
 
         // we do this to force the indication of the fact that the card should not be considered dirty when the url is updated
         dispatch(runQuery(card, false));
-        dispatch(updateUrl(card, false));
+        dispatch(updateUrl(card, { dirty: false }));
 
         return card;
     };
@@ -781,7 +801,7 @@ export const runQuery = createThunkAction(RUN_QUERY, (card, shouldUpdateUrl = tr
         };
 
         if (shouldUpdateUrl) {
-            dispatch(updateUrl(card, cardIsDirty));
+            dispatch(updateUrl(card, { dirty: cardIsDirty }));
         }
 
         let cancelQueryDeferred = defer();

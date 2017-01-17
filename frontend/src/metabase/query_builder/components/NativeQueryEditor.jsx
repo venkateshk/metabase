@@ -30,7 +30,8 @@ import { assocIn } from "icepick";
 
 import DataSelector from './DataSelector.jsx';
 import Icon from "metabase/components/Icon.jsx";
-import ParameterValueWidget from "metabase/dashboard/components/parameters/ParameterValueWidget.jsx";
+// import ParameterValueWidget from "metabase/dashboard/components/parameters/ParameterValueWidget.jsx";
+import Parameters from "metabase/dashboard/containers/Parameters";
 
 // This should return an object with information about the mode the ACE Editor should use to edit the query.
 // This object should have 2 properties:
@@ -223,7 +224,7 @@ export default class NativeQueryEditor extends Component {
     }
 
     render() {
-        const { parameters, setParameterValue } = this.props;
+        const { parameters, setParameterValue, location } = this.props;
 
         let modeInfo = getModeInfo(this.props.query, this.props.databases);
 
@@ -294,19 +295,12 @@ export default class NativeQueryEditor extends Component {
                 <div className="NativeQueryEditor bordered rounded shadowed">
                     <div className="flex align-center" style={{ minHeight: 50 }}>
                         {dataSelectors}
-                        { parameters.map(parameter =>
-                            <div key={parameter.id} className="pl2 GuiBuilder-section GuiBuilder-data flex align-center">
-                                <span className="GuiBuilder-section-label Query-label">{parameter.name}</span>
-                                <ParameterValueWidget
-                                    key={parameter.id}
-                                    parameter={parameter}
-                                    value={parameter.value}
-                                    setValue={(v) => setParameterValue(parameter.id, v)}
-                                    noReset={parameter.value === parameter.default}
-                                    commitImmediately
-                                />
-                            </div>
-                        )}
+                        <Parameters
+                            parameters={parameters}
+                            query={location.query}
+                            setParameterValue={setParameterValue}
+                            isQB
+                        />
                         <a className="Query-label no-decoration flex-align-right flex align-center px2" onClick={this.toggleEditor}>
                             <span className="mx2">{toggleEditorText}</span>
                             <Icon name={toggleEditorIcon} size={20}/>

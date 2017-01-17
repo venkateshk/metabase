@@ -401,7 +401,7 @@ export const revertToRevision = createThunkAction(REVERT_TO_REVISION, function({
 export const onUpdateDashCardVisualizationSettings = createAction(UPDATE_DASHCARD_VISUALIZATION_SETTINGS, (id, settings) => ({ id, settings }));
 export const onReplaceAllDashCardVisualizationSettings = createAction(REPLACE_ALL_DASHCARD_VISUALIZATION_SETTINGS, (id, settings) => ({ id, settings }));
 
-export const setEditingParameterId = createAction(SET_EDITING_PARAMETER_ID);
+export const setEditingParameter = createAction(SET_EDITING_PARAMETER_ID);
 export const setParameterMapping = createThunkAction(SET_PARAMETER_MAPPING, (parameter_id, dashcard_id, card_id, target) =>
     (dispatch, getState) => {
         let parameter_mappings = getState().dashboard.dashcards[dashcard_id].parameter_mappings || [];
@@ -413,16 +413,69 @@ export const setParameterMapping = createThunkAction(SET_PARAMETER_MAPPING, (par
     }
 );
 
+import { getDashboard } from "./selectors";
+import { createParameter, setParameterName as setParamName, setParameterDefaultValue as setParamDefaultValue } from "metabase/meta/Dashboard";
+
+function updateParameter(dispatch, getState, id, parameterUpdater) {
+    const dashboard = getDashboard(getState());
+    const index = _.findIndex(dashboard && dashboard.parameters, (p) => p.id === id);
+    if (index >= 0) {
+        const parameters = assoc(dashboard.parameters, index, parameterUpdater(dashboard.parameters[index]));
+        dispatch(setDashboardAttributes({ id: dashboard.id, attributes: { parameters } }));
+    }
+}
+
+function updateParameters(dispatch, getState, parametersUpdater) {
+    const dashboard = getDashboard(getState());
+    if (dashboard) {
+        const parameters = parametersUpdater(dashboard.parameters || []);
+        dispatch(setDashboardAttributes({ id: dashboard.id, attributes: { parameters } }))
+    }
+}
+
+export const addParameter = createThunkAction(ADD_PARAMETER, (parameterOption) =>
+    (dispatch, getState) => {
+        let parameter;
+        updateParameters(dispatch, getState, (parameters) => {
+            parameter = createParameter(parameterOption, parameters);
+            return parameters.concat(parameter);
+        })
+        return parameter;
+    }
+);
+
+export const removeParameter = createThunkAction(REMOVE_PARAMETER, (parameterId) =>
+    (dispatch, getState) => {
+        updateParameters(dispatch, getState, (parameters) =>
+            parameters.filter(p => p.id !== parameterId)
+        );
+        return { id: parameterId };
+    }
+);
+
+export const setParameterName = createThunkAction(SET_PARAMETER_NAME, (parameterId, name) =>
+    (dispatch, getState) => {
+        updateParameter(dispatch, getState, parameterId, (parameter) =>
+            setParamName(parameter, name)
+        )
+        return { id: parameterId, name };
+    }
+)
+
+export const setParameterDefaultValue = createThunkAction(SET_PARAMETER_DEFAULT_VALUE, (parameterId, defaultValue) =>
+    (dispatch, getState) => {
+        updateParameter(dispatch, getState, parameterId, (parameter) =>
+            setParamDefaultValue(parameter, defaultValue)
+        )
+        return { id: parameterId, defaultValue };
+    }
+)
+
 export const setParameterValue = createThunkAction(SET_PARAMETER_VALUE, (parameterId, value) =>
     (dispatch, getState) => {
         return { id: parameterId, value };
     }
 )
-
-export const removeParameter = createThunkAction(REMOVE_PARAMETER, (parameterId) =>
-    (dispatch, getState) => ({ id: parameterId })
-);
-
 
 export const CREATE_PUBLIC_LINK = "metabase/dashboard/CREATE_PUBLIC_LINK";
 export const createPublicLink = createAction(CREATE_PUBLIC_LINK, async ({ id }) => {
@@ -514,7 +567,8 @@ const dashcards = handleActions({
 }, {});
 
 const editingParameterId = handleActions({
-    [SET_EDITING_PARAMETER_ID]: { next: (state, { payload }) => payload }
+    [SET_EDITING_PARAMETER_ID]: { next: (state, { payload }) => payload },
+    [ADD_PARAMETER]: { next: (state, { payload: { id } }) => id }
 }, null);
 
 const revisions = handleActions({

@@ -44,7 +44,7 @@ export default class ShareWidget extends Component<*, Props, State> {
                 name: type,
                 link: baseLink
             },{
-                name: "Embed",
+                name: "embed",
                 link: `<iframe src="${baseLink}" width="600" height="400" frameborder="0" />`
             }].concat(extensions.map(extension => ({
                 name: extension.toUpperCase(),

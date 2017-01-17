@@ -23,7 +23,7 @@ var Urls = {
     },
 
     tableRowsQuery: function(database_id, table_id, metric_id, segment_id) {
-        let url = "/q/?db="+database_id+"&table="+table_id;
+        let url = "/q#?db="+database_id+"&table="+table_id;
 
         if (metric_id) {
             url = url + "&metric="+metric_id;

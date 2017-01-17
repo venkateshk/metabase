@@ -38,6 +38,7 @@ export const SET_EDITING_DASHBOARD = "metabase/dashboard/SET_EDITING_DASHBOARD";
 export const FETCH_CARDS = "metabase/dashboard/FETCH_CARDS";
 export const DELETE_CARD = "metabase/dashboard/DELETE_CARD";
 
+// NOTE: this is used in metabase/redux/metadata but can't be imported directly due to circular reference
 export const FETCH_DASHBOARD = "metabase/dashboard/FETCH_DASHBOARD";
 export const FETCH_DASHBOARDS = "metabase/dashboard/FETCH_DASHBOARDS";
 export const CREATE_DASHBOARD = "metabase/dashboard/CREATE_DASHBOARD";

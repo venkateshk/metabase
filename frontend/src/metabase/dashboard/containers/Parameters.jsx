@@ -4,7 +4,6 @@ import React, { Component, PropTypes } from "react";
 
 import ParameterWidget from "./ParameterWidget.jsx";
 
-import _ from "underscore";
 import querystring from "querystring";
 
 export default class Parameters extends Component {

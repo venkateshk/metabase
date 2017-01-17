@@ -30,7 +30,6 @@ import { assocIn } from "icepick";
 
 import DataSelector from './DataSelector.jsx';
 import Icon from "metabase/components/Icon.jsx";
-// import ParameterValueWidget from "metabase/dashboard/components/parameters/ParameterValueWidget.jsx";
 import Parameters from "metabase/dashboard/containers/Parameters";
 
 // This should return an object with information about the mode the ACE Editor should use to edit the query.
@@ -80,8 +79,8 @@ export default class NativeQueryEditor extends Component {
         autocompleteResultsFn: PropTypes.func.isRequired,
         isOpen: PropTypes.bool,
         parameters: PropTypes.array.isRequired,
-        parameterValues: PropTypes.object,
-        setParameterValue: PropTypes.func
+        setParameterValue: PropTypes.func,
+        location: PropTypes.object.isRequired,
     };
 
     static defaultProps = {

@@ -149,7 +149,7 @@ export const initializeQB = createThunkAction(INITIALIZE_QB, (location, params) 
                     card = await loadCard(params.cardId);
 
                     // when we are loading from a card id we want an explict clone of the card we loaded which is unmodified
-                    originalCard = JSON.parse(JSON.stringify(card));
+                    originalCard = Utils.copy(card);
                 }
 
                 // if we have a serialized card then unpack it and use it
@@ -273,7 +273,7 @@ export const cancelEditing = createThunkAction(CANCEL_EDITING, () => {
         const { qb: { originalCard } } = getState();
 
         // clone
-        let card = JSON.parse(JSON.stringify(originalCard));
+        let card = Utils.copy(originalCard);
 
         dispatch(loadMetadataForCard(card));
 
@@ -346,7 +346,7 @@ function updateVisualizationSettings(card, isEditing, display, vizSettings) {
     // make sure that something actually changed
     if (card.display === display && _.isEqual(card.visualization_settings, vizSettings)) return card;
 
-    let updatedCard = JSON.parse(JSON.stringify(card));
+    let updatedCard = Utils.copy(card);
 
     // when the visualization changes on saved card we change this into a new card w/ a known starting point
     if (!isEditing && updatedCard.id) {
@@ -399,7 +399,7 @@ export const updateTemplateTag = createThunkAction(UPDATE_TEMPLATE_TAG, (templat
     return (dispatch, getState) => {
         const { qb: { card, uiControls } } = getState();
 
-        let updatedCard = JSON.parse(JSON.stringify(card));
+        let updatedCard = Utils.copy(card);
 
         // when the query changes on saved card we change this into a new query w/ a known starting point
         if (!uiControls.isEditing && updatedCard.id) {
@@ -446,7 +446,7 @@ export const reloadCard = createThunkAction(RELOAD_CARD, () => {
         const { qb: { originalCard } } = getState();
 
         // clone
-        let card = JSON.parse(JSON.stringify(originalCard));
+        let card = Utils.copy(originalCard);
 
         dispatch(loadMetadataForCard(card));
 
@@ -463,7 +463,7 @@ export const SET_CARD_AND_RUN = "SET_CARD_AND_RUN";
 export const setCardAndRun = createThunkAction(SET_CARD_AND_RUN, (runCard, shouldUpdateUrl = true) => {
     return async (dispatch, getState) => {
         // clone
-        let card = JSON.parse(JSON.stringify(runCard));
+        let card = Utils.copy(runCard);
 
         dispatch(loadMetadataForCard(card));
 
@@ -484,7 +484,7 @@ export const setQuery = createThunkAction(SET_QUERY, (dataset_query, run = false
         const database = _.findWhere(databases, { id: databaseId });
         const supportsNativeParameters = database && _.contains(database.features, "native-parameters");
 
-        let updatedCard = JSON.parse(JSON.stringify(card)),
+        let updatedCard = Utils.copy(card),
             openTemplateTagsEditor = uiControls.isShowingTemplateTagsEditor;
 
         // when the query changes on saved card we change this into a new query w/ a known starting point
@@ -494,7 +494,7 @@ export const setQuery = createThunkAction(SET_QUERY, (dataset_query, run = false
             delete updatedCard.description;
         }
 
-        updatedCard.dataset_query = JSON.parse(JSON.stringify(dataset_query));
+        updatedCard.dataset_query = Utils.copy(dataset_query);
 
         // special handling for NATIVE cards to automatically detect parameters ... {{varname}}
         if (Query.isNative(dataset_query) && !_.isEmpty(dataset_query.native.query) && supportsNativeParameters) {
@@ -590,7 +590,7 @@ export const setQueryMode = createThunkAction(SET_QUERY_MODE, (type) => {
 
         // if we are going from MBQL -> Native then attempt to carry over the query
         if (type === "native" && queryResult && queryResult.data && queryResult.data.native_form) {
-            let updatedCard = JSON.parse(JSON.stringify(card));
+            let updatedCard = Utils.copy(card);
             let datasetQuery = updatedCard.dataset_query;
             let nativeQuery = _.pick(queryResult.data.native_form, "query", "collection");
 
@@ -675,7 +675,7 @@ export const setQueryDatabase = createThunkAction(SET_QUERY_DATABASE, (databaseI
         } else {
             // if we are editing a saved query we don't want to replace the card, so just start a fresh query only
             // TODO: should this clear the visualization as well?
-            let updatedCard = JSON.parse(JSON.stringify(card));
+            let updatedCard = Utils.copy(card);
             updatedCard.dataset_query = createQuery(card.dataset_query.type, databaseId);
             if (existingQuery) {
                 updatedCard.dataset_query.native.query = existingQuery;
@@ -730,7 +730,7 @@ export const setQuerySourceTable = createThunkAction(SET_QUERY_SOURCE_TABLE, (so
             // TODO: should this clear the visualization as well?
             let query = createQuery(card.dataset_query.type, databaseId, tableId);
 
-            let updatedCard = JSON.parse(JSON.stringify(card));
+            let updatedCard = Utils.copy(card);
             updatedCard.dataset_query = query;
             return updatedCard;
         }
@@ -758,7 +758,7 @@ export const setQuerySort = createThunkAction(SET_QUERY_SORT, (column) => {
                 field = column.id;
             }
 
-            let dataset_query = JSON.parse(JSON.stringify(card.dataset_query)),
+            let dataset_query = Utils.copy(card.dataset_query),
                 sortClause = [field, "ascending"];
 
             if (card.dataset_query.query.order_by &&
@@ -929,7 +929,7 @@ export const cellClicked = createThunkAction(CELL_CLICKED, (rowIndex, columnInde
             MetabaseAnalytics.trackEvent("QueryBuilder", "Table Cell Click", "FK");
         } else {
             // this is applying a filter by clicking on a cell value
-            let dataset_query = JSON.parse(JSON.stringify(card.dataset_query));
+            let dataset_query = Utils.copy(card.dataset_query);
 
             if (coldef.unit && coldef.unit != "default" && filter === "=") {
                 // this is someone using quick filters on a datetime value

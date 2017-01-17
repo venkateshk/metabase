@@ -65,10 +65,12 @@ var MetabaseUtils = {
     },
 
     equals: function(a, b) {
+        // FIXME: ugghhhhhhhhh
         return JSON.stringify(a) === JSON.stringify(b);
     },
 
     copy: function(a) {
+        // FIXME: ugghhhhhhhhh
         return JSON.parse(JSON.stringify(a));
     },
 

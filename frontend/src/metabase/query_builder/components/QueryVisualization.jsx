@@ -53,8 +53,8 @@ export default class QueryVisualization extends Component {
 
     _getStateFromProps(props) {
         return {
-            lastRunDatasetQuery: JSON.parse(JSON.stringify(props.card.dataset_query)),
-            lastRunParameterValues: JSON.parse(JSON.stringify(props.parameterValues))
+            lastRunDatasetQuery: Utils.copy(props.card.dataset_query),
+            lastRunParameterValues: Utils.copy(props.parameterValues)
         };
     }
 

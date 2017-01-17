@@ -9,6 +9,7 @@ declare class Object {
 }
 
 import Query from "metabase/lib/query";
+import Utils from "metabase/lib/utils";
 import _ from "underscore";
 
 export const STRUCTURED_QUERY_TEMPLATE: StructuredDatasetQuery = {
@@ -71,7 +72,7 @@ export function applyParameters(
     parameterValues: { [key: ParameterId]: string } = {},
     parameterMappings: Array<ParameterMapping> = []
 ): DatasetQuery {
-    const datasetQuery = JSON.parse(JSON.stringify(card.dataset_query));
+    const datasetQuery = Utils.copy(card.dataset_query);
     // clean the query
     if (datasetQuery.type === "query") {
         datasetQuery.query = Query.cleanQuery(datasetQuery.query);

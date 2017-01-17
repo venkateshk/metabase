@@ -7,7 +7,8 @@
             (metabase.models [card :refer [Card]]
                              [dashboard :refer [Dashboard]]
                              [dashboard-card :refer [DashboardCard]]
-                             [dashboard-card-series :refer [DashboardCardSeries]])
+                             [dashboard-card-series :refer [DashboardCardSeries]]
+                             [field-values :refer [FieldValues]])
             metabase.public-settings ; for `enable-public-sharing
             [metabase.query-processor-test :as qp-test]
             [metabase.test.data :as data]
@@ -40,12 +41,13 @@
 (defn- add-card-to-dashboard! [card dashboard]
   (db/insert! DashboardCard :dashboard_id (u/get-id dashboard), :card_id (u/get-id card)))
 
-(defmacro with-temp-public-dashboard-and-card {:style/indent 1} [[dashboard-binding card-binding] & body]
+(defmacro with-temp-public-dashboard-and-card {:style/indent 1} [[dashboard-binding card-binding & [dashcard-binding]] & body]
   `(with-temp-public-dashboard [dash#]
      (with-temp-public-card [card#]
-       (add-card-to-dashboard! card# dash#)
-       (let [~dashboard-binding dash#
-             ~card-binding      card#]
+       (let [~dashboard-binding        dash#
+             ~card-binding             card#
+             ~(or dashcard-binding
+                  (gensym "dashcard")) (add-card-to-dashboard! card# dash#)]
          ~@body))))
 
 
@@ -202,3 +204,51 @@
         (tu/with-temp DashboardCardSeries [_ {:dashboardcard_id (db/select-one-id DashboardCard :card_id (u/get-id card), :dashboard_id (u/get-id dash))
                                               :card_id          (u/get-id card-2)}]
           (qp-test/rows (http/client :get 200 (str "public/dashboard/" (:public_uuid dash) "/card/" (u/get-id card-2)))))))))
+
+
+;;; ------------------------------------------------------------ Check that parameter information comes back with Dashboard ------------------------------------------------------------
+
+;; double-check that the Field has FieldValues
+(expect
+  [1 2 3 4]
+  (db/select-one-field :values FieldValues :field_id (data/id :venues :price)))
+
+(defn- price-param-values []
+  {(keyword (str (data/id :venues :price))) {:values                [1 2 3 4]
+                                             :human_readable_values {}
+                                             :field_id              (data/id :venues :price)}})
+
+(defn- add-price-param-to-dashboard! [dashboard]
+  (db/update! Dashboard (u/get-id dashboard) :parameters [{:name "Price", :type "category", :slug "price"}]))
+
+(defn- add-dimension-param-mapping-to-dashcard! [dashcard card dimension]
+  (db/update! DashboardCard (u/get-id dashcard) :parameter_mappings [{:card_id (u/get-id card), :target ["dimension" dimension]}]))
+
+(defn- GET-param-values [dashboard]
+  (tu/with-temporary-setting-values [enable-public-sharing true]
+    (:param_values (http/client :get 200 (str "public/dashboard/" (:public_uuid dashboard))))))
+
+;; Check that param info comes back for SQL Cards
+(expect
+  (price-param-values)
+  (with-temp-public-dashboard-and-card [dash card dashcard]
+    (db/update! Card (u/get-id card) :dataset_query {:native {:template_tags {:price {:name "price", :display_name "Price", :type "dimension", :dimension ["field-id" (data/id :venues :price)]}}}})
+    (add-price-param-to-dashboard! dash)
+    (add-dimension-param-mapping-to-dashcard! dashcard card ["template-tag" "price"])
+    (GET-param-values dash)))
+
+;; Check that param info comes back for MBQL Cards (field-id)
+(expect
+  (price-param-values)
+  (with-temp-public-dashboard-and-card [dash card dashcard]
+    (add-price-param-to-dashboard! dash)
+    (add-dimension-param-mapping-to-dashcard! dashcard card ["field-id" (data/id :venues :price)])
+    (GET-param-values dash)))
+
+;; Check that param info comes back for MBQL Cards (fk->)
+(expect
+  (price-param-values)
+  (with-temp-public-dashboard-and-card [dash card dashcard]
+    (add-price-param-to-dashboard! dash)
+    (add-dimension-param-mapping-to-dashcard! dashcard card ["fk->" (data/id :checkins :venue_id) (data/id :venues :price)])
+    (GET-param-values dash)))

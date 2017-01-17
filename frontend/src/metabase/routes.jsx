@@ -240,6 +240,18 @@ export const getRoutes = (store) =>
                 {getAdminPermissionsRoutes(store)}
             </Route>
 
+            {/* INTERNAL */}
+            <Route
+                path="/_internal"
+                getChildRoutes={(partialNextState, callback) =>
+                    require.ensure([], (require) => {
+                        callback(null, [require('./routes-internal').default])
+                    })
+                }
+            >
+                <IndexRedirect to="/_internal/list" />
+            </Route>
+
             {/* MISC */}
             <Route path="/unauthorized" component={Unauthorized} />
             <Route path="/*" component={NotFound} />

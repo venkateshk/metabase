@@ -10,11 +10,16 @@
             (metabase.models [card :refer [Card]]
                              [dashboard :refer [Dashboard]]
                              [dashboard-card :refer [DashboardCard]]
+                             [dashboard-card-series :refer [DashboardCardSeries]]
+                             [field-values :refer [FieldValues]]
                              [hydrate :refer [hydrate]])
             [metabase.public-settings :as public-settings]
             [metabase.query-processor :as qp]
-            [metabase.util.schema :as su]
-            [metabase.util :as u]))
+            (metabase.query-processor [expand :as ql]
+                                      interface)
+            [metabase.util :as u]
+            [metabase.util.schema :as su])
+  (:import metabase.query_processor.interface.FieldPlaceholder))
 
 ;;; ------------------------------------------------------------ Public Cards ------------------------------------------------------------
 
@@ -51,18 +56,59 @@
 
 ;;; ------------------------------------------------------------ Public Dashboards ------------------------------------------------------------
 
+(defn- param-target->field-id
+  "Parse a Card parameter TARGET form, which looks something like `[:dimension [:field-id 100]]`, and return the Field ID
+   it references (if any)."
+  [target]
+  (when (and (vector? target)
+             (= (count target) 2)
+             (= (ql/normalize-token (first target)) :dimension))
+    (when-let [field-placeholder (u/ignore-exceptions (ql/expand-ql-sexpr (second target)))]
+      (when (instance? FieldPlaceholder field-placeholder)
+        (:field-id field-placeholder)))))
+
+(defn- dashboard->param-field-ids
+  "Return a set of Field IDs referenced by parameters in Cards in this DASHBOARD, or `nil` if none are referenced."
+  [dashboard]
+  (when-let [ids (seq (for [card  (:ordered_cards dashboard)
+                            param (:parameter_mappings card)
+                            :let  [field-id (param-target->field-id (:target param))]
+                            :when field-id]
+                        field-id))]
+    (set ids)))
+
+(defn- dashboard->param-field-values
+  "Return a map of Field ID to FieldValues (if any) for any Fields referenced by Cards in DASHBOARD,
+   or `nil` if none are referenced or none of them have FieldValues."
+  [dashboard]
+  (when-let [param-field-ids (dashboard->param-field-ids dashboard)]
+    (u/key-by :field_id (db/select [FieldValues :values :human_readable_values :field_id]
+                          :field_id [:in param-field-ids]))))
+
+(defn- add-field-values-for-parameters
+  "Add a `:param_values` map containing FieldValues for the parameter Fields in the DASHBOARD/"
+  [dashboard]
+  (assoc dashboard :param_values (dashboard->param-field-values dashboard)))
+
 (api/defendpoint GET "/dashboard/:uuid"
   "Fetch a publically-accessible Dashboard. Does not require auth credentials. Public sharing must be enabled."
   [uuid]
   (api/check-public-sharing-enabled)
-  (hydrate (api/check-404 (Dashboard :public_uuid uuid)) [:ordered_cards :card :series]))
+  (add-field-values-for-parameters (hydrate (api/check-404 (Dashboard :public_uuid uuid)) [:ordered_cards :card :series])))
 
 (api/defendpoint GET "/dashboard/:uuid/card/:card-id"
   "Fetch the results for a Card in a publically-accessible Dashboard. Does not require auth credentials. Public sharing must be enabled."
   [uuid card-id parameters]
   {parameters (s/maybe su/JSONString)}
   (api/check-public-sharing-enabled)
-  (api/check-exists? DashboardCard :dashboard_id (api/check-404 (db/select-one-id Dashboard :public_uuid uuid)), :card_id card-id)
+  (api/check-404 (let [dashboard-id (api/check-404 (db/select-one-id Dashboard :public_uuid uuid))]
+                   (or (db/exists? DashboardCard
+                         :dashboard_id dashboard-id
+                         :card_id      card-id)
+                       (when-let [dashcard-ids (db/select-ids DashboardCard :dashboard_id dashboard-id)]
+                         (db/exists? DashboardCardSeries
+                           :card_id          card-id
+                           :dashboardcard_id [:in dashcard-ids])))))
   (run-query-for-card-with-id card-id parameters))
 
 

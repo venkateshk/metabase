@@ -383,5 +383,11 @@
     :made_public_by_id nil)
   {:status 204, :body nil})
 
+(defendpoint GET "/public"
+  "Fetch a list of Cards with public UUIDs. These cards are publically-accessible *if* public sharing is enabled."
+  []
+  (check-superuser)
+  (db/select [Card :name :id :public_uuid], :public_uuid [:not= nil], :archived false))
+
 
 (define-routes)

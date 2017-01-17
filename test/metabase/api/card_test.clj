@@ -23,9 +23,18 @@
             [clojure.string :as str])
   (:import java.util.UUID))
 
-;; # CARD LIFECYCLE
+;;; CARD LIFECYCLE
 
-;; ## Helper fns
+;;; Helpers
+
+(def ^:const card-defaults
+  {:archived          false
+   :collection_id     nil
+   :description       nil
+   :display           "scalar"
+   :made_public_by_id nil
+   :public_uuid       nil
+   :query_type        "query"})
 
 ;; ## GET /api/card
 ;; Filter cards by database
@@ -144,19 +153,13 @@
 (let [card-name (random-name)]
   (expect-with-temp [Database [{database-id :id}]
                      Table    [{table-id :id}  {:db_id database-id}]]
-    {:description            nil
-     :name                   card-name
-     :creator_id             (user->id :rasta)
-     :dataset_query          (mbql-count-query database-id table-id)
-     :display                "scalar"
-     :visualization_settings {:global {:title nil}}
-     :database_id            database-id ; these should be inferred automatically
-     :table_id               table-id
-     :query_type             "query"
-     :collection_id          nil
-     :public_uuid            nil
-     :made_public_by_id      nil
-     :archived               false}
+    (merge card-defaults
+           {:name                   card-name
+            :creator_id             (user->id :rasta)
+            :dataset_query          (mbql-count-query database-id table-id)
+            :visualization_settings {:global {:title nil}}
+            :database_id            database-id ; these should be inferred automatically
+            :table_id               table-id})
     ;; make sure we clean up after ourselves as well and delete the Card we create
     (dissoc (u/prog1 ((user->client :rasta) :post 200 "card" {:name                   card-name
                                                               :display                "scalar"
@@ -170,37 +173,32 @@
 (expect-with-temp [Database  [{database-id :id}]
                    Table     [{table-id :id}   {:db_id database-id}]
                    Card      [card             {:dataset_query (mbql-count-query database-id table-id)}]]
-  (match-$ card
-    {:description            nil
-     :dashboard_count        0
-     :name                   $
-     :creator_id             (user->id :rasta)
-     :creator                (match-$ (fetch-user :rasta)
-                               {:common_name  "Rasta Toucan"
-                                :is_superuser false
-                                :is_qbnewb    true
-                                :last_login   $
-                                :last_name    "Toucan"
-                                :first_name   "Rasta"
-                                :date_joined  $
-                                :email        "rasta@metabase.com"
-                                :id           $})
-     :updated_at             $
-     :dataset_query          $
-     :id                     $
-     :display                "table"
-     :visualization_settings {}
-     :can_write              true
-     :created_at             $
-     :database_id            database-id ; these should be inferred from the dataset_query
-     :table_id               table-id
-     :query_type             "query"
-     :collection_id          nil
-     :collection             nil
-     :public_uuid            nil
-     :made_public_by_id      nil
-     :archived               false
-     :labels                 []})
+  (merge card-defaults
+         (match-$ card
+           {:dashboard_count        0
+            :name                   $
+            :creator_id             (user->id :rasta)
+            :creator                (match-$ (fetch-user :rasta)
+                                      {:common_name  "Rasta Toucan"
+                                       :is_superuser false
+                                       :is_qbnewb    true
+                                       :last_login   $
+                                       :last_name    "Toucan"
+                                       :first_name   "Rasta"
+                                       :date_joined  $
+                                       :email        "rasta@metabase.com"
+                                       :id           $})
+            :updated_at             $
+            :dataset_query          $
+            :id                     $
+            :display                "table"
+            :visualization_settings {}
+            :can_write              true
+            :created_at             $
+            :database_id            database-id ; these should be inferred from the dataset_query
+            :table_id               table-id
+            :collection             nil
+            :labels                 []}))
   ((user->client :rasta) :get 200 (str "card/" (u/get-id card))))
 
 ;; Check that a user without permissions isn't allowed to fetch the card
@@ -640,3 +638,8 @@
 (expect
   "Not found."
   ((user->client :crowberto) :delete 404 (format "card/%d/public_link" Integer/MAX_VALUE)))
+
+;; Test that we can fetch a list of publically-accessible dashboards
+(tu/expect-with-temp [Card [card (shared-card)]]
+  [(select-keys card [:name :id :public_uuid])]
+  ((user->client :crowberto) :get 200 "card/public"))

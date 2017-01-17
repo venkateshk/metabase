@@ -178,5 +178,11 @@
     :made_public_by_id nil)
   {:status 204, :body nil})
 
+(defendpoint GET "/public"
+  "Fetch a list of Dashboards with public UUIDs. These dashboards are publically-accessible *if* public sharing is enabled."
+  []
+  (check-superuser)
+  (db/select [Dashboard :name :id :public_uuid], :public_uuid [:not= nil]))
+
 
 (define-routes)

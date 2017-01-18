@@ -75,6 +75,11 @@ export default class Visualization extends Component {
         // misc
         onUpdateWarnings: PropTypes.func,
         onOpenChartSettings: PropTypes.func,
+
+        // number of grid cells wide and tall
+        gridSize: PropTypes.object,
+        // if gridSize isn't specified, compute using this gridSize (4x width, 3x height)
+        gridUnit: PropTypes.number,
     };
 
     static defaultProps = {
@@ -149,7 +154,7 @@ export default class Visualization extends Component {
     }
 
     render() {
-        const { actionButtons, className, isDashboard, width, errorIcon, isSlow, expectedDuration, replacementContent } = this.props;
+        const { actionButtons, className, isDashboard, width, height, errorIcon, isSlow, expectedDuration, replacementContent } = this.props;
         const { series, CardVisualization } = this.state;
         const small = width < 330;
 
@@ -206,6 +211,14 @@ export default class Visualization extends Component {
                 {actionButtons}
             </span>
         );
+
+        let { gridSize, gridUnit } = this.props;
+        if (!gridSize && gridUnit) {
+            gridSize = {
+                width: Math.round(width / (gridUnit * 4)),
+                height: Math.round(height / (gridUnit * 3)),
+            };
+        }
 
         return (
             <div className={cx(className, "flex flex-column")}>
@@ -283,6 +296,7 @@ export default class Visualization extends Component {
                         onHoverChange={this.onHoverChange}
                         onRenderError={this.onRenderError}
                         onRender={this.onRender}
+                        gridSize={gridSize}
                     />
                 }
             </div>

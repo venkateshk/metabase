@@ -1,5 +1,7 @@
 (ns metabase.util.urls
-  (:require [metabase.models.setting :as setting]))
+  (:require [clojure.string :as s]
+            [cemerick.url :refer [url url-encode]]
+            [metabase.models.setting :as setting]))
 
 (defn pulse-url
   "Return an appropriate URL for a `Pulse` with ID.
@@ -28,3 +30,13 @@
      (segment-url 10) -> \"http://localhost:3000/admin/datamodel/segment/10\""
   [^Integer id]
   (format "%s/admin/datamodel/segment/%d" (setting/get :-site-url) id))
+
+(defn oembed-url
+  "Return an oEmbed URL for the relative path and format
+
+     (oembed-url \"/x\" \"json\") -> \"http://localhost:3000/api/public/oembed?url=x&format=json\""
+  [^String relative-url ^String format]
+  (str (url (setting/get :-site-url) "/api/public/oembed")
+       ;; NOTE: some oEmbed consumers require `url` be the first param???
+       "?url=" (url-encode (url (setting/get :-site-url) relative-url))
+       "&format=" format))

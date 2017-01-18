@@ -47,7 +47,7 @@ export default class PublicQuestion extends Component {
                 { () =>
                     <Visualization
                         series={[result]}
-                        className="flex-full mt2"
+                        className="flex-full sm-mt1"
                         onUpdateVisualizationSettings={(settings) =>
                             this.setState({
                                 result: updateIn(result, ["card", "visualization_settings"], (s) => ({ ...s, ...settings }))

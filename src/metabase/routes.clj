@@ -7,19 +7,22 @@
             [stencil.core :as stencil]
             [metabase.api.routes :as api]
             [metabase.public-settings :as public-settings]
-            [metabase.util :as u]))
+            [metabase.util :as u]
+            [metabase.util.embed :refer [embed-head]]))
 
-(defn- entrypoint [entry _]
+
+(defn- entrypoint [entry embeddable? {:keys [uri]}]
   (-> (if ((resolve 'metabase.core/initialized?))
         (stencil/render-string (slurp (or (io/resource (str "frontend_client/" entry ".html"))
                                           (throw (Exception. (str "Cannot find './resources/frontend_client/" entry ".html'. Did you remember to build the Metabase frontend?")))))
-                               {:bootstrap_json (json/generate-string (public-settings/public-settings))})
+                               {:bootstrap_json (json/generate-string (public-settings/public-settings))
+                                :embed_code     (if embeddable? (embed-head uri))})
         (slurp (io/resource "frontend_client/init.html")))
       resp/response
       (resp/content-type "text/html; charset=utf-8")))
 
-(def ^:private index (partial entrypoint "index"))
-(def ^:private public (partial entrypoint "public"))
+(def ^:private index (partial entrypoint "index" false))
+(def ^:private public (partial entrypoint "public" true))
 
 (defroutes ^:private public-routes
   (GET ["/question/:uuid.csv"  :uuid u/uuid-regex] [uuid] (resp/redirect (format "/api/public/card/%s/csv"  uuid)))

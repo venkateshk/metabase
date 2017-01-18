@@ -18,8 +18,12 @@
             (metabase.query-processor [expand :as ql]
                                       interface)
             [metabase.util :as u]
-            [metabase.util.schema :as su])
+            [metabase.util.schema :as su]
+            [metabase.util.embed :refer [embed-iframe]])
   (:import metabase.query_processor.interface.FieldPlaceholder))
+
+(def default-embed-max-height 800)
+(def default-embed-max-width 1024)
 
 ;;; ------------------------------------------------------------ Public Cards ------------------------------------------------------------
 
@@ -129,5 +133,19 @@
                            :dashboardcard_id [:in dashcard-ids])))))
   (run-query-for-card-with-id card-id parameters))
 
+(api/defendpoint GET "/oembed"
+  "oEmbed endpoint"
+  [url format maxheight maxwidth]
+  {url       su/NonBlankString
+   format    (s/maybe (s/enum "json"))
+   maxheight (s/maybe su/IntString)
+   maxwidth  (s/maybe su/IntString)}
+  (let [height (if maxheight (Integer/parseInt maxheight) default-embed-max-height)
+        width  (if maxwidth (Integer/parseInt maxwidth) default-embed-max-width)]
+    {:version "1.0"
+     :type    "rich"
+     :width   width
+     :height  height
+     :html    (embed-iframe url width height)}))
 
 (api/define-routes)

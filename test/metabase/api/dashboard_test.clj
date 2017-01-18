@@ -1,6 +1,7 @@
 (ns metabase.api.dashboard-test
   "Tests for /api/dashboard endpoints."
   (:require [expectations :refer :all]
+            [metabase.api.card-test :as card-api-test]
             (metabase [db :as db]
                       [http-client :as http]
                       [middleware :as middleware])
@@ -120,18 +121,14 @@
                            :created_at             true
                            :parameter_mappings     []
                            :visualization_settings {}
-                           :card                   {:name                   "Dashboard Test Card"
-                                                    :description            nil
-                                                    :creator_id             (user->id :rasta)
-                                                    :creator                (user-details (fetch-user :rasta))
-                                                    :display                "table"
-                                                    :query_type             nil
-                                                    :dataset_query          {}
-                                                    :visualization_settings {}
-                                                    :collection_id          nil
-                                                    :made_public_by_id      nil
-                                                    :public_uuid            nil
-                                                    :archived               false}
+                           :card                   (merge card-api-test/card-defaults
+                                                          {:name                   "Dashboard Test Card"
+                                                           :creator_id             (user->id :rasta)
+                                                           :creator                (user-details (fetch-user :rasta))
+                                                           :display                "table"
+                                                           :query_type             nil
+                                                           :dataset_query          {}
+                                                           :visualization_settings {}})
                            :series                 []}]})
   ;; fetch a dashboard WITH a dashboard card on it
   (tu/with-temp* [Dashboard     [{dashboard-id :id} {:name "Test Dashboard"}]
@@ -499,3 +496,8 @@
 (expect
   "Not found."
   ((user->client :crowberto) :delete 404 (format "dashboard/%d/public_link" Integer/MAX_VALUE)))
+
+;; Test that we can fetch a list of publically-accessible dashboards
+(tu/expect-with-temp [Dashboard [dashboard (shared-dashboard)]]
+  [(select-keys dashboard [:name :id :public_uuid])]
+  ((user->client :crowberto) :get 200 "dashboard/public"))

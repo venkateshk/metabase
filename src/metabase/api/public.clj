@@ -56,24 +56,42 @@
 
 ;;; ------------------------------------------------------------ Public Dashboards ------------------------------------------------------------
 
+;; TODO - This logic seems too complicated for a one-off custom response format. Simplification would be nice, as would potentially
+;;        moving some of this logic into a shared module
+
+(defn- field-form->id
+  "Expand a `field-id` or `fk->` FORM and return the ID of the Field it references.
+
+     (field-form->id [:field-id 100])  ; -> 100"
+  [field-form]
+  (when-let [field-placeholder (u/ignore-exceptions (ql/expand-ql-sexpr field-form))]
+    (when (instance? FieldPlaceholder field-placeholder)
+      (:field-id field-placeholder))))
+
+(defn- template-tag->field-form
+  "Fetch the `field-id` or `fk->` form from DASHCARD referenced by TEMPLATE-TAG.
+
+     (template-tag->field-form [:template-tag :company] some-dashcard) ; -> [:field-id 100]"
+  [[_ tag] dashcard]
+  (get-in dashcard [:card :dataset_query :native :template_tags (keyword tag) :dimension]))
+
 (defn- param-target->field-id
   "Parse a Card parameter TARGET form, which looks something like `[:dimension [:field-id 100]]`, and return the Field ID
    it references (if any)."
-  [target]
-  (when (and (vector? target)
-             (= (count target) 2)
-             (= (ql/normalize-token (first target)) :dimension))
-    (when-let [field-placeholder (u/ignore-exceptions (ql/expand-ql-sexpr (second target)))]
-      (when (instance? FieldPlaceholder field-placeholder)
-        (:field-id field-placeholder)))))
+  [target dashcard]
+  (when (ql/is-clause? :dimension target)
+    (let [[_ dimension] target]
+      (field-form->id (if (ql/is-clause? :template-tag dimension)
+                        (template-tag->field-form dimension dashcard)
+                        dimension)))))
 
 (defn- dashboard->param-field-ids
   "Return a set of Field IDs referenced by parameters in Cards in this DASHBOARD, or `nil` if none are referenced."
   [dashboard]
-  (when-let [ids (seq (for [card  (:ordered_cards dashboard)
-                            param (:parameter_mappings card)
-                            :let  [field-id (param-target->field-id (:target param))]
-                            :when field-id]
+  (when-let [ids (seq (for [dashcard (:ordered_cards dashboard)
+                            param    (:parameter_mappings dashcard)
+                            :let     [field-id (param-target->field-id (:target param) dashcard)]
+                            :when    field-id]
                         field-id))]
     (set ids)))
 

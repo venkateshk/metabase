@@ -9,6 +9,7 @@ import LoadingAndErrorWrapper from "metabase/components/LoadingAndErrorWrapper";
 import ExplicitSize from "metabase/components/ExplicitSize";
 
 import LogoBadge from "../components/LogoBadge";
+import EmbedFrame from "../components/EmbedFrame";
 import Parameters from "metabase/dashboard/containers/Parameters";
 
 import { getParameters, applyParameters } from "metabase/meta/Card";
@@ -17,7 +18,6 @@ import type { Card } from "metabase/meta/types/Card";
 import type { Dataset } from "metabase/meta/types/Dataset";
 
 import { PublicApi } from "metabase/services";
-import { IFRAMED } from "metabase/lib/dom";
 
 import { updateIn } from "icepick";
 import cx from "classnames";
@@ -54,8 +54,7 @@ export default class PublicQuestion extends Component<*, Props, State> {
     async componentWillMount() {
         const { params: { uuid }, location: { query }} = this.props;
         try {
-            // FIXME: need to split card/dataset endpoint up
-            let { card } = await PublicApi.card({ uuid });
+            let card = await PublicApi.card({ uuid });
 
             let parameters = getParameters(card);
             let parameterValues = {};
@@ -91,7 +90,7 @@ export default class PublicQuestion extends Component<*, Props, State> {
         const datasetQuery = applyParameters(card, parameters, parameterValues);
 
         try {
-            const newResult = await PublicApi.card({
+            const newResult = await PublicApi.cardQuery({
                 uuid,
                 parameters: JSON.stringify(datasetQuery.parameters)
             });
@@ -116,9 +115,7 @@ export default class PublicQuestion extends Component<*, Props, State> {
         }
 
         return (
-            <div className={cx("spread flex flex-column px0 pb0 sm-px2 sm-pb2", {
-                "bordered rounded shadowed bg-white m1": IFRAMED
-            })}>
+            <EmbedFrame className={cx("flex flex-column px0 pb0 sm-px2 sm-pb2")}>
                 <div className="flex align-center justify-between py0 sm-py1 md-py2">
                     { card && showTitle &&
                         <TitleAndDescription title={card.name} description={card.description} />
@@ -143,7 +140,7 @@ export default class PublicQuestion extends Component<*, Props, State> {
                 <LoadingAndErrorWrapper loading={!result} error={error}>
                 { () =>
                     <Visualization
-                        series={[result]}
+                        series={[{ card: card, data: result.data }]}
                         className="flex-full"
                         onUpdateVisualizationSettings={(settings) =>
                             this.setState({
@@ -155,7 +152,7 @@ export default class PublicQuestion extends Component<*, Props, State> {
                     />
                 }
                 </LoadingAndErrorWrapper>
-            </div>
+            </EmbedFrame>
         )
     }
 }

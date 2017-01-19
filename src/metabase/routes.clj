@@ -25,8 +25,8 @@
 (def ^:private public (partial entrypoint "public" :embeddable))
 
 (defroutes ^:private public-routes
-  (GET ["/question/:uuid.csv"  :uuid u/uuid-regex] [uuid] (resp/redirect (format "/api/public/card/%s/csv"  uuid)))
-  (GET ["/question/:uuid.json" :uuid u/uuid-regex] [uuid] (resp/redirect (format "/api/public/card/%s/json" uuid)))
+  (GET ["/question/:uuid.csv"  :uuid u/uuid-regex] [uuid] (resp/redirect (format "/api/public/card/%s/query/csv"  uuid)))
+  (GET ["/question/:uuid.json" :uuid u/uuid-regex] [uuid] (resp/redirect (format "/api/public/card/%s/query/json" uuid)))
   (GET "*" [] public))
 
 ;; Redirect naughty users who try to visit a page other than setup if setup is not yet complete

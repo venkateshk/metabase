@@ -42,16 +42,21 @@
   [uuid parameters]
   {parameters (s/maybe su/JSONString)}
   (api/let-404 [card (db/select-one [Card :id :display :name :description :dataset_query :visualization_settings] :public_uuid uuid)]
-    (assoc (run-query-for-card-with-id (u/get-id card) parameters)
-      :card card)))
+    card))
 
-(api/defendpoint GET "/card/:uuid/json"
+(api/defendpoint GET "/card/:uuid/query"
+  "Fetch a publically-accessible Card an return query results as well as `:card` information. Does not require auth credentials. Public sharing must be enabled."
+  [uuid parameters]
+  {parameters (s/maybe su/JSONString)}
+  (run-query-for-card-with-public-uuid uuid parameters))
+
+(api/defendpoint GET "/card/:uuid/query/json"
   "Fetch a publically-accessible Card and return query results as JSON. Does not require auth credentials. Public sharing must be enabled."
   [uuid parameters]
   {parameters (s/maybe su/JSONString)}
   (dataset-api/as-json (run-query-for-card-with-public-uuid uuid parameters, :constraints nil)))
 
-(api/defendpoint GET "/card/:uuid/csv"
+(api/defendpoint GET "/card/:uuid/query/csv"
   "Fetch a publically-accessible Card and return query results as CSV. Does not require auth credentials. Public sharing must be enabled."
   [uuid parameters]
   {parameters (s/maybe su/JSONString)}

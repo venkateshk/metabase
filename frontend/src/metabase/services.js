@@ -55,6 +55,7 @@ export const CollectionsApi = {
 
 export const PublicApi = {
     card:                        GET("/api/public/card/:uuid"),
+    cardQuery:                   GET("/api/public/card/:uuid/query"),
     dashboard:                   GET("/api/public/dashboard/:uuid"),
     dashboardCardQuery:          GET("/api/public/dashboard/:uuid/card/:cardId")
 };

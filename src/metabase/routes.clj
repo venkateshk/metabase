@@ -21,8 +21,8 @@
       resp/response
       (resp/content-type "text/html; charset=utf-8")))
 
-(def ^:private index (partial entrypoint "index" false))
-(def ^:private public (partial entrypoint "public" true))
+(def ^:private index  (partial entrypoint "index"  (not :embeddable)))
+(def ^:private public (partial entrypoint "public" :embeddable))
 
 (defroutes ^:private public-routes
   (GET ["/question/:uuid.csv"  :uuid u/uuid-regex] [uuid] (resp/redirect (format "/api/public/card/%s/csv"  uuid)))

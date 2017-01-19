@@ -38,5 +38,5 @@
   [^String relative-url ^String format]
   (str (url (setting/get :-site-url) "/api/public/oembed")
        ;; NOTE: some oEmbed consumers require `url` be the first param???
-       "?url=" (url-encode (url (setting/get :-site-url) relative-url))
-       "&format=" format))
+       "?url="    (url-encode (url (setting/get :-site-url) relative-url))
+       "&format=" (url-encode format)))

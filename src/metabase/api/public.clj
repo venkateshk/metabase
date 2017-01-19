@@ -22,8 +22,8 @@
             [metabase.util.embed :refer [embed-iframe]])
   (:import metabase.query_processor.interface.FieldPlaceholder))
 
-(def default-embed-max-height 800)
-(def default-embed-max-width 1024)
+(def ^:private ^:const ^Integer default-embed-max-height 800)
+(def ^:private ^:const ^Integer default-embed-max-width 1024)
 
 ;;; ------------------------------------------------------------ Public Cards ------------------------------------------------------------
 
@@ -134,7 +134,7 @@
   (run-query-for-card-with-id card-id parameters))
 
 (api/defendpoint GET "/oembed"
-  "oEmbed endpoint"
+  "oEmbed endpoint used to retreive embed code and metadata for a (public) Metabase URL"
   [url format maxheight maxwidth]
   {url       su/NonBlankString
    format    (s/maybe (s/enum "json"))

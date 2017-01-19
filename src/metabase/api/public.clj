@@ -41,7 +41,7 @@
   "Fetch a publically-accessible Card an return query results as well as `:card` information. Does not require auth credentials. Public sharing must be enabled."
   [uuid parameters]
   {parameters (s/maybe su/JSONString)}
-  (api/let-404 [card (db/select-one [Card :id :display :name :description :visualization_settings] :public_uuid uuid)]
+  (api/let-404 [card (db/select-one [Card :id :display :name :description :dataset_query :visualization_settings] :public_uuid uuid)]
     (assoc (run-query-for-card-with-id (u/get-id card) parameters)
       :card card)))
 

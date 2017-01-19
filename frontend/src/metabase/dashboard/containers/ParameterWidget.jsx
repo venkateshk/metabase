@@ -73,7 +73,7 @@ export default class ParameterWidget extends Component {
         let containerClassName = S.container;
         let nameClassName = S.name;
         if (isQB) {
-            containerClassName = "pl2 GuiBuilder-section GuiBuilder-data flex align-center";
+            containerClassName = "pl2 GuiBuilder-section flex align-center";
             nameClassName = "GuiBuilder-section-label Query-label";
         }
 

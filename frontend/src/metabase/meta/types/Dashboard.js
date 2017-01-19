@@ -43,6 +43,7 @@ export type Parameter = {
     id: ParameterId,
     name: string,
     type: ParameterType,
+    slug: string,
     default?: string
 };
 

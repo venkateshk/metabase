@@ -17,7 +17,10 @@ import type { Card } from "metabase/meta/types/Card";
 import type { Dataset } from "metabase/meta/types/Dataset";
 
 import { PublicApi } from "metabase/services";
+import { IFRAMED } from "metabase/lib/dom";
+
 import { updateIn } from "icepick";
+import cx from "classnames";
 
 type Props = {
     params:     { uuid: string },
@@ -113,7 +116,9 @@ export default class PublicQuestion extends Component<*, Props, State> {
         }
 
         return (
-            <div className="spread flex flex-column px0 pb0 sm-px2 sm-pb2">
+            <div className={cx("spread flex flex-column px0 pb0 sm-px2 sm-pb2", {
+                "bordered rounded shadowed bg-white m1": IFRAMED
+            })}>
                 <div className="flex align-center justify-between py0 sm-py1 md-py2">
                     { card && showTitle &&
                         <TitleAndDescription title={card.name} description={card.description} />

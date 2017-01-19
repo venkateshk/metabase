@@ -8,6 +8,7 @@ const SIZES = [12, 16];
 const ListApp = () =>
     <ul>
         <li><a href="/_internal/icons">Icons</a></li>
+        <li><a href="/_internal/embed?url=">Embed</a></li>
     </ul>
 
 class IconsApp extends Component {
@@ -55,10 +56,21 @@ class IconsApp extends Component {
     }
 }
 
+const EmbedTestApp = ({ location }) =>
+    <div className="bg-brand flex-full p4 flex">
+        <iframe
+            className="flex-full"
+            src={location.query.url}
+            frameBorder={0}
+            allowTransparency
+            style={{ backgroundColor: "transparent" }}
+        />
+    </div>
 
 export default (
     <Route>
         <Route path="list" component={ListApp} />
         <Route path="icons" component={IconsApp} />
+        <Route path="embed" component={EmbedTestApp} />
     </Route>
 );

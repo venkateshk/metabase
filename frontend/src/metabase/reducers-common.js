@@ -10,7 +10,7 @@ import requests from "metabase/redux/requests";
 import undo from "metabase/redux/undo";
 
 /* user */
-import { currentUser } from "metabase/user";
+import { currentUser } from "metabase/redux/user";
 
 export default {
     // global reducers

@@ -1,6 +1,6 @@
-/* eslint "react/prop-types": "warn" */
+/* @flow weak */
 
-import React, { Component, PropTypes } from "react";
+import React, { Component, PropTypes, Element } from "react";
 
 import ExplicitSize from "metabase/components/ExplicitSize.jsx";
 import LegendHeader from "metabase/visualizations/components/LegendHeader.jsx";
@@ -24,63 +24,82 @@ import cx from "classnames";
 export const ERROR_MESSAGE_GENERIC = "There was a problem displaying this chart.";
 export const ERROR_MESSAGE_PERMISSION = "Sorry, you don't have permission to see this card."
 
+import type { VisualizationSettings } from "metabase/meta/types/Card";
+import type { HoverObject, Series } from "metabase/visualizations";
+
+type Props = {
+    series: Series,
+
+    className: string,
+
+    isDashboard: boolean,
+    isEditing: boolean,
+
+    actionButtons: Element<any>,
+
+    // errors
+    error: string,
+    errorIcon: string,
+
+    // slow card warnings
+    isSlow: boolean,
+    expectedDuration: number,
+
+    // injected by ExplicitSize
+    width: number,
+    height: number,
+
+    // settings overrides from settings panel
+    settings: VisualizationSettings,
+
+    // used for showing content in place of visualization, e.x. dashcard filter mapping
+    replacementContent: Element<any>,
+
+    // used by TableInteractive
+    setSortFn: (any) => void,
+    cellIsClickableFn: (number, number) => boolean,
+    cellClickedFn: (number, number) => void,
+
+    // misc
+    onUpdateWarnings: (string[]) => void,
+    onOpenChartSettings: () => void,
+
+    // number of grid cells wide and tall
+    gridSize?: { width: number, height: number },
+    // if gridSize isn't specified, compute using this gridSize (4x width, 3x height)
+    gridUnit?: number,
+}
+
+type State = {
+    series: ?Series,
+    CardVisualization: ?(Component<*, VisualizationSettings, *> & {
+        checkRenderable: (any, any) => void,
+        noHeader: boolean
+    }),
+
+    hovered: ?HoverObject,
+    error: ?Error,
+    warnings: string[],
+    yAxisSplit: ?number[][],
+}
+
 @ExplicitSize
-export default class Visualization extends Component {
-    constructor(props, context) {
-        super(props, context)
+export default class Visualization extends Component<*, Props, State> {
+    state: State;
+    props: Props;
+
+    constructor(props: Props) {
+        super(props);
 
         this.state = {
             hovered: null,
             error: null,
             warnings: [],
             yAxisSplit: null,
+            series: null,
+            CardVisualization: null
         };
-
-        _.bindAll(this, "onRender", "onRenderError", "onHoverChange");
     }
-
-    static propTypes = {
-        series: PropTypes.array.isRequired,
-
-        className: PropTypes.string,
-
-        isDashboard: PropTypes.bool,
-        isEditing: PropTypes.bool,
-
-        actionButtons: PropTypes.node,
-
-        // errors
-        error: PropTypes.string,
-        errorIcon: PropTypes.string,
-
-        // slow card warnings
-        isSlow: PropTypes.bool,
-        expectedDuration: PropTypes.number,
-
-        // injected by ExplicitSize
-        width: PropTypes.number,
-        height: PropTypes.number,
-
-        // settings overrides from settings panel
-        settings: PropTypes.object,
-
-        // used for showing content in place of visualization, e.x. dashcard filter mapping
-        replacementContent: PropTypes.node,
-
-        // used by TableInteractive
-        setSortFn: PropTypes.func,
-        cellIsClickableFn: PropTypes.func,
-        cellClickedFn: PropTypes.func,
-
-        // misc
-        onUpdateWarnings: PropTypes.func,
-        onOpenChartSettings: PropTypes.func,
-
-        // number of grid cells wide and tall
-        gridSize: PropTypes.object,
-        // if gridSize isn't specified, compute using this gridSize (4x width, 3x height)
-        gridUnit: PropTypes.number,
-    };
 
     static defaultProps = {
         isDashboard: false,
@@ -108,6 +127,7 @@ export default class Visualization extends Component {
         }
     }
 
+    // $FlowFixMe
     getWarnings(props = this.props, state = this.state) {
         let warnings = state.warnings || [];
         // don't warn about truncated data for table since we show a warning in the row count
@@ -133,7 +153,7 @@ export default class Visualization extends Component {
         });
     }
 
-    onHoverChange(hovered) {
+    onHoverChange = (hovered) => {
         const { yAxisSplit } = this.state;
         if (hovered) {
             // if we have Y axis split info then find the Y axis index (0 = left, 1 = right)
@@ -145,11 +165,11 @@ export default class Visualization extends Component {
         this.setState({ hovered });
     }
 
-    onRender({ yAxisSplit, warnings = [] } = {}) {
+    onRender = ({ yAxisSplit, warnings = [] } = {}) => {
         this.setState({ yAxisSplit, warnings });
     }
 
-    onRenderError(error) {
+    onRenderError = (error) => {
         this.setState({ error })
     }
 
@@ -159,7 +179,7 @@ export default class Visualization extends Component {
         const small = width < 330;
 
         let error = this.props.error || this.state.error;
-        let loading = !(series.length > 0 && _.every(series, (s) => s.data));
+        let loading = !(series && series.length > 0 && _.every(series, (s) => s.data));
         let noResults = false;
 
         // don't try to load settings unless data is loaded
@@ -172,6 +192,7 @@ export default class Visualization extends Component {
             } else {
                 try {
                     if (CardVisualization.checkRenderable) {
+                        // $FlowFixMe
                         CardVisualization.checkRenderable(series[0].data.cols, series[0].data.rows, settings);
                     }
                 } catch (e) {
@@ -222,12 +243,13 @@ export default class Visualization extends Component {
 
         return (
             <div className={cx(className, "flex flex-column")}>
-                { isDashboard && (settings["card.title"] || extra) && (loading || error || !CardVisualization.noHeader) || replacementContent ?
+                { isDashboard && (settings["card.title"] || extra) && (loading || error || !(CardVisualization && CardVisualization.noHeader)) || replacementContent ?
                     <div className="p1 flex-no-shrink">
                         <LegendHeader
                             series={
                                 settings["card.title"] ?
                                     // if we have a card title set, use it
+                                    // $FlowFixMe
                                     setIn(series, [0, "card", "name"], settings["card.title"]) :
                                     // otherwise use the original series
                                     series
@@ -285,12 +307,15 @@ export default class Visualization extends Component {
                         }
                     </div>
                 :
+                    // $FlowFixMe
                     <CardVisualization
                         {...this.props}
                         className="flex-full"
                         series={series}
                         settings={settings}
+                        // $FlowFixMe
                         card={series[0].card} // convienence for single-series visualizations
+                        // $FlowFixMe
                         data={series[0].data} // convienence for single-series visualizations
                         hovered={this.state.hovered}
                         onHoverChange={this.onHoverChange}

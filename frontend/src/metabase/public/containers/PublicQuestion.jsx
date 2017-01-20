@@ -140,7 +140,7 @@ export default class PublicQuestion extends Component<*, Props, State> {
                 <LoadingAndErrorWrapper loading={!result} error={error}>
                 { () =>
                     <Visualization
-                        series={[{ card: card, data: result.data }]}
+                        series={[{ card: card, data: result && result.data }]}
                         className="flex-full"
                         onUpdateVisualizationSettings={(settings) =>
                             this.setState({

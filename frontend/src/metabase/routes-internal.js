@@ -58,6 +58,7 @@ class IconsApp extends Component {
 
 import Toggle from "metabase/components/Toggle";
 import MetabaseEmbed from "metabase/public/components/MetabaseEmbed";
+import querystring from "querystring";
 
 class EmbedTestApp extends Component {
     constructor(props) {
@@ -68,16 +69,25 @@ class EmbedTestApp extends Component {
     }
     render() {
         const { location, params } = this.props;
+        let options = querystring.stringify({ bordered: this.state.bordered });
+        if (options) {
+            options = "#" + options;
+        }
+        const url = `${window.location.origin}/public/${params.type}/${params.uuid}${location.search}${options}`;
         return (
             <div className="bg-brand flex-full px4 pb4 flex flex-column">
-                <div className="p1 flex align-center text-white text-bold">
+                <div className="p1 py2 flex align-center text-white text-bold">
                     <span className="mr1">Bordered:</span>
                     <Toggle value={this.state.bordered} onChange={value => this.setState({ bordered: value })} />
+                    <input
+                        className="ml2 input flex-full"
+                        style={{ textAlign: "left", direction: "rtl" }}
+                        value={url}
+                    />
                 </div>
                 <MetabaseEmbed
                     className="flex-full"
-                    url={`${window.location.origin}/public/${params.type}/${params.uuid}?${location.search}`}
-                    bordered={this.state.bordered}
+                    url={url}
                 />
             </div>
         );

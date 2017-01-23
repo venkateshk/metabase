@@ -23,7 +23,11 @@
   :default "Metabase")
 
 (defsetting -site-url
-  "The base URL of this Metabase instance, e.g. \"http://metabase.my-company.com\"")
+  "The base URL of this Metabase instance, e.g. \"http://metabase.my-company.com\".
+   This is *guaranteed* never to have a tailing slash."
+  :setter (fn [new-value]
+            (setting/set-string! :-site-url (when new-value
+                                              (s/replace new-value #"/$" "")))))
 
 (defsetting admin-email
   "The email address users should be referred to if they encounter a problem.")
@@ -48,8 +52,7 @@
   [{{:strs [origin host]} :headers}]
   {:pre  [(or origin host)]
    :post [(string? %)]}
-  (or (some-> (-site-url)
-              (s/replace #"/$" "")) ; strip off trailing slash if one was included
+  (or (-site-url)
       (-site-url (or origin host))))
 
 (defsetting enable-public-sharing

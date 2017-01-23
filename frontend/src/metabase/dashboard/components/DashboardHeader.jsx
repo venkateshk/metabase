@@ -127,7 +127,7 @@ export default class DashboardHeader extends Component {
     }
 
     getHeaderButtons() {
-        const { dashboard, parameters, isEditing, isFullscreen, isNightMode, isEditable } = this.props;
+        const { dashboard, parameters, isEditing, isFullscreen, isNightMode, isEditable, isAdmin } = this.props;
         const isEmpty = !dashboard || dashboard.ordered_cards.length === 0;
         const canEdit = isEditable && !!dashboard;
 
@@ -224,9 +224,9 @@ export default class DashboardHeader extends Component {
             );
         }
 
-        if (!isFullscreen && canEdit) {
+        if (!isFullscreen && (isAdmin || dashboard.public_uuid)) {
             buttons.push(
-                <DashboardShareWidget dashboard={dashboard} />
+                <DashboardShareWidget dashboard={dashboard} isAdmin={isAdmin} />
             )
         }
 

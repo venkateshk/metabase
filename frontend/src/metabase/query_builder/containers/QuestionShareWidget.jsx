@@ -14,9 +14,10 @@ const mapDispatchToProps = {
 @connect(null, mapDispatchToProps)
 export default class QuestionShareWidget extends Component {
     render() {
-        const { className, card, createPublicLink, deletePublicLink } = this.props;
+        const { className, card, createPublicLink, deletePublicLink, ...props } = this.props;
         return (
             <ShareWidget
+                {...props}
                 className={className}
                 type="question"
                 uuid={card.public_uuid}

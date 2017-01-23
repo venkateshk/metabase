@@ -39,6 +39,8 @@ import {
     getIsRunnable,
 } from "../selectors";
 
+import { getUserIsAdmin } from "metabase/selectors/user";
+
 import * as actions from "../actions";
 import { push } from "react-router-redux";
 
@@ -66,9 +68,8 @@ function autocompleteResults(card, prefix) {
 
 const mapStateToProps = (state, props) => {
     return {
-        user:                      state.currentUser,
+        isAdmin:                   getUserIsAdmin(state, props),
         fromUrl:                   props.location.query.from,
-        location:                  props.location,
 
         card:                      card(state),
         originalCard:              originalCard(state),

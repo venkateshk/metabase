@@ -14,9 +14,10 @@ const mapDispatchToProps = {
 @connect(null, mapDispatchToProps)
 export default class DashboardShareWidget extends Component {
     render() {
-        const { className, dashboard, createPublicLink, deletePublicLink } = this.props;
+        const { className, dashboard, createPublicLink, deletePublicLink, ...props } = this.props;
         return (
             <ShareWidget
+                {...props}
                 className={className}
                 type="dashboard"
                 uuid={dashboard.public_uuid}

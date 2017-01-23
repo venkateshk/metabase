@@ -82,7 +82,7 @@ export default class QueryVisualization extends Component {
     }
 
     renderHeader() {
-        const { isObjectDetail, isRunning, card, result } = this.props;
+        const { isObjectDetail, isRunning, isAdmin, card, result } = this.props;
         const isDirty = this.queryIsDirty();
         const isSaved = card.id != null;
         return (
@@ -111,10 +111,11 @@ export default class QueryVisualization extends Component {
                             result={result}
                         />
                     : null }
-                    { isSaved ?
+                    { (isSaved && (isAdmin || card.public_uuid)) ?
                         <QuestionShareWidget
                             className="mx1"
                             card={card}
+                            isAdmin={isAdmin}
                         />
                     : null }
                 </div>

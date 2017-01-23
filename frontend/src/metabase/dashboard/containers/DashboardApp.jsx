@@ -9,10 +9,13 @@ import Dashboard from "../components/Dashboard.jsx";
 import { fetchDatabaseMetadata } from "metabase/redux/metadata";
 
 import { getIsEditing, getIsEditingParameter, getIsDirty, getDashboardComplete, getCardList, getRevisions, getCardData, getCardDurations, getDatabases, getEditingParameter, getParameterValues } from "../selectors";
+import { getUserIsAdmin } from "metabase/selectors/user";
+
 import * as dashboardActions from "../dashboard";
 
 const mapStateToProps = (state, props) => {
   return {
+      isAdmin:              getUserIsAdmin(state, props),
       isEditing:            getIsEditing(state, props),
       isEditingParameter:   getIsEditingParameter(state, props),
       isDirty:              getIsDirty(state, props),

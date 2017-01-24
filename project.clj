@@ -39,7 +39,6 @@
                                org.apache.httpcomponents/httpclient
                                net.sourceforge.nekohtml/nekohtml
                                ring/ring-core]]
-                 [com.cemerick/url "0.1.1"]                           ; URL library
                  [com.draines/postal "2.0.1"]                         ; SMTP library
                  [com.google.apis/google-api-services-analytics       ; Google Analytics Java Client Library
                   "v3-rev135-1.22.0"]

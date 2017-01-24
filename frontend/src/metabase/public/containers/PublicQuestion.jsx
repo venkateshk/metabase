@@ -10,6 +10,7 @@ import ExplicitSize from "metabase/components/ExplicitSize";
 
 import LogoBadge from "../components/LogoBadge";
 import EmbedFrame from "../components/EmbedFrame";
+import PublicNotFound from "../components/PublicNotFound";
 import Parameters from "metabase/dashboard/containers/Parameters";
 
 import { getParameters, applyParameters } from "metabase/meta/Card";
@@ -107,6 +108,10 @@ export default class PublicQuestion extends Component<*, Props, State> {
         const { card, result, error, parameterValues } = this.state;
 
         const showTitle = height > 250;
+
+        if (error && error.status === 404) {
+            return <PublicNotFound />
+        }
 
         let parameters = [];
         if (card) {

@@ -26,6 +26,8 @@ export default class ShareWidget extends Component<*, Props, State> {
     state: State;
     props: Props;
 
+    _popover: ?PopoverWithTrigger;
+
     constructor(props: Props) {
         super(props);
         this.state = {
@@ -34,7 +36,7 @@ export default class ShareWidget extends Component<*, Props, State> {
     }
 
     static defaultProps = {
-        extensions: []
+        extensions: [],
     }
 
     render() {
@@ -69,7 +71,12 @@ export default class ShareWidget extends Component<*, Props, State> {
                         </div>
                         <div>
                             <Button onClick={() => this.setState({ confirmDisable: false })}>Cancel</Button>
-                            <Button className="ml1" warning onClick={() => { onDisable(); this._popover.close() }}>Disable</Button>
+                            <Button className="ml1" warning onClick={() => {
+                                onDisable();
+                                if (this._popover) {
+                                    this._popover.close();
+                                }
+                            }}>Disable</Button>
                         </div>
                     </div>
                 : uuid ?

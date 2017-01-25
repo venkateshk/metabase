@@ -33,7 +33,7 @@ type Props = {
 type State = {
     card:               ?Card,
     result:             ?Dataset,
-    error:              ?Error,
+    error:              ?any,
     parameterValues:    {[key:string]: string}
 }
 

@@ -10,10 +10,22 @@ import LoadingAndErrorWrapper from "metabase/components/LoadingAndErrorWrapper";
 import { CardApi, DashboardApi } from "metabase/services";
 import Urls from "metabase/lib/urls";
 
+type PublicLink = {
+    id: string,
+    name: string,
+    public_uuid: string
+};
+
 type Props = {
+    load:         () => Promise<PublicLink[]>,
+    revoke:       (link: PublicLink) => Promise<void>,
+    getUrl:       (link: PublicLink) => string,
+    getPublicUrl: (link: PublicLink) => string,
 };
 
 type State = {
+    list: ?PublicLink[],
+    error: ?any
 };
 
 export default class PublicLinksListing extends Component<*, Props, State> {
@@ -23,7 +35,8 @@ export default class PublicLinksListing extends Component<*, Props, State> {
     constructor(props: Props) {
         super(props);
         this.state = {
-            list: null
+            list: null,
+            error: null
         };
     }
 
@@ -40,9 +53,9 @@ export default class PublicLinksListing extends Component<*, Props, State> {
         }
     }
 
-    async revoke(item) {
+    async revoke(link: PublicLink) {
         try {
-            await this.props.revoke(item);
+            await this.props.revoke(link);
             this.load();
         } catch (error) {
             alert(error)
@@ -64,23 +77,23 @@ export default class PublicLinksListing extends Component<*, Props, State> {
                         </tr>
                     </thead>
                     <tbody>
-                        { this.state.list.map(item =>
+                        { list && list.map(link =>
                             <tr>
                                 <td>
-                                    <Link to={getUrl(item)}>
-                                        {item.name}
+                                    <Link to={getUrl(link)}>
+                                        {link.name}
                                     </Link>
                                 </td>
                                 <td>
-                                    <ExternalLink href={getPublicUrl(item)}>
-                                        {getPublicUrl(item)}
+                                    <ExternalLink href={getPublicUrl(link)}>
+                                        {getPublicUrl(link)}
                                     </ExternalLink>
                                 </td>
                                 <td className="flex layout-centered">
                                     <Icon
                                         name="close"
                                         className="text-grey-2 text-grey-4-hover cursor-pointer"
-                                        onClick={() => this.revoke(item)}
+                                        onClick={() => this.revoke(link)}
                                     />
                                 </td>
                             </tr>

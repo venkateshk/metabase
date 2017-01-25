@@ -6,7 +6,9 @@ import LogoIcon from "metabase/components/LogoIcon";
 import cx from "classnames";
 
 type Props = {
-    className?: string
+    className?: string,
+    logoClassName?: string,
+    textClassName?: string
 }
 
 const LogoBadge = ({ className, logoClassName, textClassName }: Props) =>

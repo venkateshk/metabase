@@ -3,7 +3,6 @@
 import React, { Component, PropTypes } from "react";
 
 import Visualization from "metabase/visualizations/components/Visualization";
-import TitleAndDescription from "metabase/components/TitleAndDescription"
 import QueryDownloadWidget from "metabase/query_builder/components/QueryDownloadWidget";
 import LoadingAndErrorWrapper from "metabase/components/LoadingAndErrorWrapper";
 import ExplicitSize from "metabase/components/ExplicitSize";
@@ -103,10 +102,8 @@ export default class PublicQuestion extends Component<*, Props, State> {
     }
 
     render() {
-        const { params: { uuid }, height, location } = this.props;
+        const { params: { uuid }, location } = this.props;
         const { card, result, error, parameterValues } = this.state;
-
-        const showTitle = height > 250;
 
         if (error && error.status === 404) {
             return <PublicNotFound />

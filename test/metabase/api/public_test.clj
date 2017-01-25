@@ -54,7 +54,7 @@
 
 ;;; ------------------------------------------------------------ GET /api/public/card/:uuid ------------------------------------------------------------
 
-;; Check that we *cannot* execute a PublicCard if the setting is disabled
+;; Check that we *cannot* fetch a PublicCard if the setting is disabled
 (expect
   "Public sharing is not enabled."
   (tu/with-temporary-setting-values [enable-public-sharing false]
@@ -67,39 +67,70 @@
   (tu/with-temporary-setting-values [enable-public-sharing true]
     (http/client :get 404 (str "public/card/" (UUID/randomUUID)))))
 
-;; Check that we *cannot* execute a PublicCard if the Card has been archived
+;; Check that we *cannot* fetch a PublicCard if the Card has been archived
 (expect
   "Not found."
   (tu/with-temporary-setting-values [enable-public-sharing true]
     (with-temp-public-card [{uuid :public_uuid} {:archived true}]
       (http/client :get 404 (str "public/card/" uuid)))))
 
+;; Check that we can fetch a PublicCard
+(expect
+  #{:dataset_query :description :display :id :name :visualization_settings}
+  (tu/with-temporary-setting-values [enable-public-sharing true]
+    (with-temp-public-card [{uuid :public_uuid}]
+      (set (keys (http/client :get 200 (str "public/card/" uuid)))))))
+
+
+;;; ------------------------------------------------------------ GET /api/public/card/:uuid/query (and JSON and CSV versions)  ------------------------------------------------------------
+
+;; Check that we *cannot* execute a PublicCard if the setting is disabled
+(expect
+  "Public sharing is not enabled."
+  (tu/with-temporary-setting-values [enable-public-sharing false]
+    (with-temp-public-card [{uuid :public_uuid}]
+      (http/client :get 400 (str "public/card/" uuid "/query")))))
+
+
+;; Check that we get a 404 if the PublicCard doesn't exist
+(expect
+  "Not found."
+  (tu/with-temporary-setting-values [enable-public-sharing true]
+    (http/client :get 404 (str "public/card/" (UUID/randomUUID) "/query"))))
+
+;; Check that we *cannot* execute a PublicCard if the Card has been archived
+(expect
+  "Not found."
+  (tu/with-temporary-setting-values [enable-public-sharing true]
+    (with-temp-public-card [{uuid :public_uuid} {:archived true}]
+      (http/client :get 404 (str "public/card/" uuid "/query")))))
+
 ;; Check that we can exec a PublicCard
 (expect
   [[100]]
   (tu/with-temporary-setting-values [enable-public-sharing true]
     (with-temp-public-card [{uuid :public_uuid}]
-      (qp-test/rows (http/client :get 200 (str "public/card/" uuid))))))
+      (qp-test/rows (http/client :get 200 (str "public/card/" uuid "/query"))))))
 
 ;; Check that we can exec a PublicCard and get results as JSON
 (expect
   (tu/with-temporary-setting-values [enable-public-sharing true]
     (with-temp-public-card [{uuid :public_uuid}]
-      (http/client :get 200 (str "public/card/" uuid "/json")))))
+      (http/client :get 200 (str "public/card/" uuid "/query/json")))))
 
 ;; Check that we can exec a PublicCard and get results as CSV
 (expect
   "count\n100\n"
   (tu/with-temporary-setting-values [enable-public-sharing true]
     (with-temp-public-card [{uuid :public_uuid}]
-      (http/client :get 200 (str "public/card/" uuid "/csv"), :format :csv))))
+      (http/client :get 200 (str "public/card/" uuid "/query/csv"), :format :csv))))
 
 ;; Check that we can exec a PublicCard with `?parameters`
 (expect
   [{:type "category", :value 2}]
   (tu/with-temporary-setting-values [enable-public-sharing true]
     (with-temp-public-card [{uuid :public_uuid}]
-      (get-in (http/client :get 200 (str "public/card/" uuid), :parameters (json/encode [{:type "category", :value 2}]))
+      (get-in (http/client :get 200 (str "public/card/" uuid "/query"), :parameters (json/encode [{:type "category", :value 2}]))
               [:json_query :parameters]))))
 
 

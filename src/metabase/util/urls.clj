@@ -1,6 +1,11 @@
 (ns metabase.util.urls
+  "Utility functions for generating the frontend URLs that correspond various user-facing Metabase *objects*, like Cards or Dashboards.
+   This is intended as the central place for all such URL-generation activity, so if frontend routes change, only this file need be changed
+   on the backend.
+
+   Functions for generating URLs not related to Metabase *objects* generally do not belong here, unless they are used in many places in the
+   codebase; one-off URL-generation functions should go in the same namespaces or modules where they are used."
   (:require [clojure.string :as s]
-            [ring.util.codec :as codec]
             [metabase.public-settings :as public-settings]))
 
 (defn pulse-url
@@ -30,14 +35,3 @@
      (segment-url 10) -> \"http://localhost:3000/admin/datamodel/segment/10\""
   [^Integer id]
   (format "%s/admin/datamodel/segment/%d" (public-settings/-site-url) id))
-
-(defn oembed-url
-  "Return an oEmbed URL for the relative path and format
-
-     (oembed-url \"/x\" \"json\") -> \"http://localhost:3000/api/public/oembed?url=x&format=json\""
-  [^String relative-url ^String format]
-  (str (public-settings/-site-url)
-       "/api/public/oembed"
-       ;; NOTE: some oEmbed consumers require `url` be the first param???
-       "?url="    (codec/url-encode (str (public-settings/-site-url) relative-url))
-       "&format=" (codec/url-encode format)))

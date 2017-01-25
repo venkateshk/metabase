@@ -16,6 +16,7 @@ export default class PublicDashboard extends Component {
                     className={"spread"}
                     isEditable={false}
                     params={{ ...params, dashboardId: params.uuid }}
+                    linkToCard={false}
                 />
             </EmbedFrame>
         );

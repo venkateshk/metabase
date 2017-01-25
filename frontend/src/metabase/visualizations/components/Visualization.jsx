@@ -68,6 +68,8 @@ type Props = {
     gridSize?: { width: number, height: number },
     // if gridSize isn't specified, compute using this gridSize (4x width, 3x height)
     gridUnit?: number,
+
+    linkToCard?: bool,
 }
 
 type State = {
@@ -104,6 +106,7 @@ export default class Visualization extends Component<*, Props, State> {
     static defaultProps = {
         isDashboard: false,
         isEditing: false,
+        linkToCard: true,
         onUpdateVisualizationSettings: (...args) => console.warn("onUpdateVisualizationSettings", args)
     };
 
@@ -174,7 +177,7 @@ export default class Visualization extends Component<*, Props, State> {
     }
 
     render() {
-        const { actionButtons, className, isDashboard, width, height, errorIcon, isSlow, expectedDuration, replacementContent } = this.props;
+        const { actionButtons, className, isDashboard, width, height, errorIcon, isSlow, expectedDuration, replacementContent, linkToCard } = this.props;
         const { series, CardVisualization } = this.state;
         const small = width < 330;
 
@@ -256,6 +259,7 @@ export default class Visualization extends Component<*, Props, State> {
                             }
                             actionButtons={extra}
                             settings={settings}
+                            linkToCard={linkToCard}
                         />
                     </div>
                 : null
@@ -322,6 +326,7 @@ export default class Visualization extends Component<*, Props, State> {
                         onRenderError={this.onRenderError}
                         onRender={this.onRender}
                         gridSize={gridSize}
+                        linkToCard={linkToCard}
                     />
                 }
             </div>

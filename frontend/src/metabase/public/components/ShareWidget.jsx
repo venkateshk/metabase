@@ -16,6 +16,7 @@ type Props = {
     extensions: string[],
     onCreate: () => void,
     onDisable: () => void,
+    isAdmin: bool
 }
 
 type State = {

@@ -145,6 +145,7 @@ export default class PublicQuestion extends Component<*, Props, State> {
                 <LoadingAndErrorWrapper loading={!result} error={error}>
                 { () =>
                     <Visualization
+                        isDashboard
                         series={[{ card: card, data: result && result.data }]}
                         className="flex-full"
                         onUpdateVisualizationSettings={(settings) =>
@@ -154,6 +155,14 @@ export default class PublicQuestion extends Component<*, Props, State> {
                             })
                         }
                         gridUnit={12}
+                        actionButtons={parameters.length > 0 &&
+                            <Parameters
+                                parameters={parameters}
+                                query={location.query}
+                                setParameterValue={this.setParameterValue}
+                                isQB
+                            />}
+                        linkToCard={false}
                     />
                 }
                 </LoadingAndErrorWrapper>

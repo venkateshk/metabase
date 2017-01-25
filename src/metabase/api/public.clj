@@ -19,7 +19,7 @@
                                       interface)
             [metabase.util :as u]
             [metabase.util.schema :as su]
-            [metabase.util.embed :refer [embed-iframe]])
+            [metabase.util.embed :as embed])
   (:import metabase.query_processor.interface.FieldPlaceholder))
 
 (def ^:private ^:const ^Integer default-embed-max-height 800)
@@ -140,18 +140,21 @@
   (run-query-for-card-with-id card-id parameters))
 
 (api/defendpoint GET "/oembed"
-  "oEmbed endpoint used to retreive embed code and metadata for a (public) Metabase URL"
+  "oEmbed endpoint used to retreive embed code and metadata for a (public) Metabase URL."
   [url format maxheight maxwidth]
+  ;; the format param is not used by the API, but is required as part of the oEmbed spec: http://oembed.com/#section2
+  ;; just return an error if `format` is specified and it's anything other than `json`.
   {url       su/NonBlankString
    format    (s/maybe (s/enum "json"))
    maxheight (s/maybe su/IntString)
    maxwidth  (s/maybe su/IntString)}
   (let [height (if maxheight (Integer/parseInt maxheight) default-embed-max-height)
-        width  (if maxwidth (Integer/parseInt maxwidth) default-embed-max-width)]
+        width  (if maxwidth  (Integer/parseInt maxwidth) default-embed-max-width)]
     {:version "1.0"
      :type    "rich"
      :width   width
      :height  height
-     :html    (embed-iframe url width height)}))
+     :html    (embed/iframe url width height)}))
+
 
 (api/define-routes)

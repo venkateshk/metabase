@@ -27,6 +27,14 @@
 
 ;;; ------------------------------------------------------------ Public Cards ------------------------------------------------------------
 
+(api/defendpoint GET "/card/:uuid"
+  "Fetch a publically-accessible Card an return query results as well as `:card` information. Does not require auth credentials. Public sharing must be enabled."
+  [uuid parameters]
+  {parameters (s/maybe su/JSONString)}
+  (api/check-public-sharing-enabled)
+  (api/check-404 (db/select-one [Card :id :display :name :description :dataset_query :visualization_settings] :public_uuid uuid, :archived false)))
+
+
 (defn- run-query-for-card-with-id [card-id parameters & options]
   (api/check-public-sharing-enabled)
   (let [parameters (json/parse-string parameters keyword)]
@@ -35,14 +43,7 @@
       (apply card-api/run-query-for-card card-id, :parameters parameters, options))))
 
 (defn- run-query-for-card-with-public-uuid [uuid parameters & options]
-  (apply run-query-for-card-with-id (api/check-404 (db/select-one-id Card :public_uuid uuid)) parameters options))
-
-(api/defendpoint GET "/card/:uuid"
-  "Fetch a publically-accessible Card an return query results as well as `:card` information. Does not require auth credentials. Public sharing must be enabled."
-  [uuid parameters]
-  {parameters (s/maybe su/JSONString)}
-  (api/let-404 [card (db/select-one [Card :id :display :name :description :dataset_query :visualization_settings] :public_uuid uuid)]
-    card))
+  (apply run-query-for-card-with-id (api/check-404 (db/select-one-id Card :public_uuid uuid, :archived false)) parameters options))
 
 (api/defendpoint GET "/card/:uuid/query"
   "Fetch a publically-accessible Card an return query results as well as `:card` information. Does not require auth credentials. Public sharing must be enabled."

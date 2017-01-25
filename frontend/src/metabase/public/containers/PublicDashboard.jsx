@@ -10,7 +10,7 @@ export default class PublicDashboard extends Component {
     render() {
         const { params } = this.props;
         return (
-            <EmbedFrame>
+            <EmbedFrame className="spread">
                 <DashboardApp
                     {...this.props}
                     className={"spread"}

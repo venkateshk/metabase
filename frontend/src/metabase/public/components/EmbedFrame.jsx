@@ -30,11 +30,13 @@ export default class EmbedFrame extends Component {
 
         return (
             <div
-                className={cx("spread bg-white flex", className, {
+                className={cx("flex flex-column bg-white", className, {
                     "scroll-y m1 bordered rounded shadowed": options.bordered
                 })}
             >
-                {children}
+                <div className="flex-full scroll-y flex" ref={(c) => this._content = c}>
+                    {children}
+                </div>
                 { footer &&
                     <div className="p1 md-p2 lg-p3 bg-white border-top flex-no-shrink flex">
                         <LogoBadge logoClassName="sm-show" />

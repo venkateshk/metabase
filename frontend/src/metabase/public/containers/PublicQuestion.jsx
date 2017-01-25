@@ -124,7 +124,7 @@ export default class PublicQuestion extends Component<*, Props, State> {
         )
 
         return (
-            <EmbedFrame className={cx("flex flex-column")} actionButtons={actionButtons}>
+            <EmbedFrame className="spread" actionButtons={actionButtons}>
                 <LoadingAndErrorWrapper loading={!result} error={error}>
                 { () =>
                     <Visualization

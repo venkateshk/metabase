@@ -4,6 +4,7 @@ import ReactDOM from "react-dom";
 import PopoverWithTrigger from "metabase/components/PopoverWithTrigger.jsx";
 import Icon from "metabase/components/Icon.jsx";
 import DownloadButton from "metabase/components/DownloadButton.jsx";
+import Tooltip from "metabase/components/Tooltip.jsx";
 
 import FieldSet from "metabase/components/FieldSet.jsx";
 
@@ -15,7 +16,9 @@ import cx from "classnames";
 const QueryDownloadWidget = ({ className, card, result, uuid }) =>
     <PopoverWithTrigger
         triggerElement={
-            <Icon title="Download this data" name='download' size={16} />
+            <Tooltip tooltip="Download">
+                <Icon title="Download this data" name="downarrow" size={16} />
+            </Tooltip>
         }
         triggerClasses={cx(className, "text-brand-hover")}
     >

@@ -3,6 +3,8 @@ import ReactDOM from "react-dom";
 
 import { IFRAMED } from "metabase/lib/dom";
 
+import LogoBadge from "./LogoBadge";
+
 import querystring from "querystring";
 import cx from "classnames";
 
@@ -22,15 +24,25 @@ export default class EmbedFrame extends Component {
     }
 
     render() {
-        const { className, children } = this.props;
+        const { className, children, actionButtons } = this.props;
         let options = this._getOptions();
+        const footer = true;
+
         return (
             <div
-                className={cx("spread bg-white", className, {
+                className={cx("spread bg-white flex", className, {
                     "scroll-y m1 bordered rounded shadowed": options.bordered
                 })}
             >
                 {children}
+                { footer &&
+                    <div className="p1 md-p2 lg-p3 bg-white border-top flex-no-shrink flex">
+                        <LogoBadge logoClassName="sm-show" />
+                        {actionButtons &&
+                            <div className="flex-align-right text-grey-3">{actionButtons}</div>
+                        }
+                    </div>
+                }
             </div>
         )
     }

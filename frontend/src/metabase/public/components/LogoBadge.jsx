@@ -9,10 +9,12 @@ type Props = {
     className?: string
 }
 
-const LogoBadge = ({ className }: Props) =>
-    <a href="http://www.metabase.com/" className={cx(className, "flex align-center text-brand no-decoration")}>
-        <LogoIcon size={24} className="mr1" />
-        <span className="text-bold h4">Metabase</span>
+const LogoBadge = ({ className, logoClassName, textClassName }: Props) =>
+    <a href="http://www.metabase.com/" className={cx(className, "h4 flex text-bold align-center text-brand no-decoration")}>
+        <LogoIcon size={24} className={cx(logoClassName, "mr1")} />
+        <span className={textClassName}>
+            <span className="text-grey-3">Powered by</span> <span className="text-brand">Metabase</span>
+        </span>
     </a>
 
 export default LogoBadge;

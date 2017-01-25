@@ -5,6 +5,7 @@ import Icon from "metabase/components/Icon";
 import Button from "metabase/components/Button";
 import PopoverWithTrigger from "metabase/components/PopoverWithTrigger";
 import CopyWidget from "metabase/components/CopyWidget";
+import Tooltip from "metabase/components/Tooltip";
 
 import cx from "classnames";
 
@@ -60,7 +61,9 @@ export default class ShareWidget extends Component<*, Props, State> {
             <PopoverWithTrigger
                 ref={p => this._popover = p}
                 triggerElement={
-                    <Icon name="link" />
+                    <Tooltip tooltip={isAdmin && !uuid ? "Create public links" : "Links"}>
+                        <Icon name="link" />
+                    </Tooltip>
                 }
                 triggerClasses={cx(className, "text-brand-hover")}
             >

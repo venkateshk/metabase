@@ -8,7 +8,6 @@ import QueryDownloadWidget from "metabase/query_builder/components/QueryDownload
 import LoadingAndErrorWrapper from "metabase/components/LoadingAndErrorWrapper";
 import ExplicitSize from "metabase/components/ExplicitSize";
 
-import LogoBadge from "../components/LogoBadge";
 import EmbedFrame from "../components/EmbedFrame";
 import PublicNotFound from "../components/PublicNotFound";
 import Parameters from "metabase/dashboard/containers/Parameters";
@@ -119,29 +118,16 @@ export default class PublicQuestion extends Component<*, Props, State> {
             parameters = getParameters(card).map(p => ({ ...p, value: parameterValues[p.id] }));
         }
 
+        const actionButtons = result && (
+            <QueryDownloadWidget
+                className="m1 text-grey-4-hover"
+                uuid={uuid}
+                result={result}
+            />
+        )
+
         return (
-            <EmbedFrame className={cx("flex flex-column px0 pb0 sm-px2 sm-pb2")}>
-                <div className="flex align-center justify-between py0 sm-py1 md-py2">
-                    { card && showTitle &&
-                        <TitleAndDescription title={card.name} description={card.description} />
-                    }
-                    <LogoBadge className="ml-auto mr-auto" />
-                    { result &&
-                        <QueryDownloadWidget
-                            className="m1"
-                            uuid={uuid}
-                            result={result}
-                        />
-                    }
-                </div>
-                { parameters.length > 0 &&
-                    <Parameters
-                        parameters={parameters}
-                        query={location.query}
-                        setParameterValue={this.setParameterValue}
-                        isQB
-                    />
-                }
+            <EmbedFrame className={cx("flex flex-column")} actionButtons={actionButtons}>
                 <LoadingAndErrorWrapper loading={!result} error={error}>
                 { () =>
                     <Visualization

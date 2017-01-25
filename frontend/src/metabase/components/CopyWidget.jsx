@@ -43,7 +43,7 @@ export default class CopyWidget extends Component<*, Props, State> {
                 <Tooltip tooltip="Copied!" isOpen={this.state.copied}>
                     <CopyToClipboard text={value} onCopy={this.onCopy}>
                         <div className="p1 flex align-center bordered border-med rounded-right text-brand bg-brand-hover text-white-hover">
-                            <Icon name="star" />
+                            <Icon name="copy" />
                         </div>
                     </CopyToClipboard>
                 </Tooltip>

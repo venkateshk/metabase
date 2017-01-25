@@ -6,6 +6,8 @@ import Button from "metabase/components/Button";
 import PopoverWithTrigger from "metabase/components/PopoverWithTrigger";
 import CopyWidget from "metabase/components/CopyWidget";
 
+import cx from "classnames";
+
 const POPOVER_WIDTH = 325;
 
 type Props = {
@@ -36,7 +38,7 @@ export default class ShareWidget extends Component<*, Props, State> {
     }
 
     render() {
-        const { uuid, type, extensions, isAdmin, onCreate, onDisable } = this.props;
+        const { className, uuid, type, extensions, isAdmin, onCreate, onDisable } = this.props;
         const { confirmDisable } = this.state;
 
         let links;
@@ -55,8 +57,9 @@ export default class ShareWidget extends Component<*, Props, State> {
             <PopoverWithTrigger
                 ref={p => this._popover = p}
                 triggerElement={
-                    <Icon name="star" />
+                    <Icon name="link" />
                 }
+                triggerClasses={cx(className, "text-brand-hover")}
             >
                 { confirmDisable ?
                     <div className="p2" style={{ width: POPOVER_WIDTH }}>

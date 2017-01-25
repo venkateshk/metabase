@@ -7,12 +7,17 @@ import DownloadButton from "metabase/components/DownloadButton.jsx";
 
 import FieldSet from "metabase/components/FieldSet.jsx";
 
-import _ from "underscore";
 import Urls from "metabase/lib/urls";
+
+import _ from "underscore";
+import cx from "classnames";
 
 const QueryDownloadWidget = ({ className, card, result, uuid }) =>
     <PopoverWithTrigger
-        triggerElement={<Icon className={className} title="Download this data" name='download' size={16} />}
+        triggerElement={
+            <Icon title="Download this data" name='download' size={16} />
+        }
+        triggerClasses={cx(className, "text-brand-hover")}
     >
         <div className="p2" style={{ maxWidth: 300 }}>
             <h4>Download</h4>

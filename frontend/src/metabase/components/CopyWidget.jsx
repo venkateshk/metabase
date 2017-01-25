@@ -39,6 +39,7 @@ export default class CopyWidget extends Component<*, Props, State> {
                     style={{ borderRight: "none" }}
                     type="text"
                     value={value}
+                    onClick={(e) => e.target.setSelectionRange(0, e.target.value.length)}
                 />
                 <Tooltip tooltip="Copied!" isOpen={this.state.copied}>
                     <CopyToClipboard text={value} onCopy={this.onCopy}>

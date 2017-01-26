@@ -5,6 +5,7 @@
 import auth from "metabase/auth/auth";
 
 /* ducks */
+import app from "metabase/redux/app";
 import metadata from "metabase/redux/metadata";
 import requests from "metabase/redux/requests";
 import undo from "metabase/redux/undo";
@@ -14,6 +15,7 @@ import { currentUser } from "metabase/redux/user";
 
 export default {
     // global reducers
+    app,
     auth,
     currentUser,
     metadata,

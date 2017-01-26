@@ -15,9 +15,22 @@ import api from "metabase/lib/api";
 import { getStore } from './store'
 
 import { refreshSiteSettings } from "metabase/redux/settings";
+import { setErrorPage } from "metabase/redux/app";
 
 import { Router, browserHistory } from "react-router";
 import { push, syncHistoryWithStore } from 'react-router-redux'
+
+// we shouldn't redirect these URLs because we want to handle them differently
+const WHITELIST_FORBIDDEN_URLS = [
+    // on dashboards, we show permission errors for individual cards we don't have access to
+    /api\/card\/\d+\/query$/,
+    // metadata endpoints should not cause redirects
+    // we should gracefully handle cases where we don't have access to metadata
+    /api\/database\/\d+\/metadata$/,
+    /api\/database\/\d+\/fields/,
+    /api\/table\/\d+\/query_metadata$/,
+    /api\/table\/\d+\/fks$/
+];
 
 function _init(reducers, getRoutes, callback) {
     const store = getStore(reducers, browserHistory);
@@ -51,11 +64,6 @@ function _init(reducers, getRoutes, callback) {
         store.dispatch(push("/auth/login"));
     });
 
-    // we shouldn't redirect these URLs because we want to handle them differently
-    let WHITELIST_FORBIDDEN_URLS = [
-        /api\/card\/\d+\/query$/,
-        /api\/database\/\d+\/metadata$/
-    ];
     // received a 403 response
     api.on("403", (url) => {
         if (url) {
@@ -65,7 +73,7 @@ function _init(reducers, getRoutes, callback) {
                 }
             }
         }
-        store.dispatch(push("/unauthorized"));
+        store.dispatch(setErrorPage(403));
     });
 
     if (callback) {

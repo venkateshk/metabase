@@ -34,11 +34,11 @@ export default class EmbedFrame extends Component {
                     "scroll-y m1 bordered rounded shadowed": options.bordered
                 })}
             >
-                <div className="flex-full scroll-y flex" ref={(c) => this._content = c}>
+                <div className="flex-full scroll-y relative">
                     {children}
                 </div>
                 { footer &&
-                    <div className="p1 md-p2 lg-p3 bg-white border-top flex-no-shrink flex">
+                    <div className="p1 md-p2 lg-p3 bg-white border-top flex-no-shrink flex align-center">
                         <LogoBadge logoClassName="sm-show" />
                         {actionButtons &&
                             <div className="flex-align-right text-grey-3">{actionButtons}</div>

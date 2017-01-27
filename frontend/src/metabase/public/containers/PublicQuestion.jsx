@@ -130,7 +130,7 @@ export default class PublicQuestion extends Component<*, Props, State> {
                     <Visualization
                         isDashboard
                         series={[{ card: card, data: result && result.data }]}
-                        className="flex-full"
+                        className="spread"
                         onUpdateVisualizationSettings={(settings) =>
                             this.setState({
                                 // $FlowFixMe
